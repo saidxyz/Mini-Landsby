@@ -91,6 +91,24 @@ function initBuffers(gl) {
 	colorsArray = colorsArray.concat(r, g, b, a);
 
 	let phi = 0.0;
+
+	// Create lines for the top circle
+	for (let sector = 1; sector <= sectors + 1; sector++) {
+		let x1 = radius * Math.cos(phi);
+		let z1 = radius * Math.sin(phi);
+		let x2 = radius * Math.cos(phi + step);
+		let z2 = radius * Math.sin(phi + step);
+
+		// Top circle
+		positionsArray = positionsArray.concat(x1, height / 2, z1);
+		positionsArray = positionsArray.concat(x2, height / 2, z2);
+
+		// Bottom circle
+		positionsArray = positionsArray.concat(x1, -height / 2, z1);
+		positionsArray = positionsArray.concat(x2, -height / 2, z2);
+
+		phi += step;
+	}
 	for (let sector = 1; sector <= sectors + 2; sector++) {
 		x = radius * Math.cos(phi);
 		y = height / 2;
@@ -119,36 +137,6 @@ function initBuffers(gl) {
 		phi += step;
 	}
 
-	// Generer sideflatene
-	phi = 0.0;
-	for (let sector = 1; sector <= sectors + 1; sector++) {
-		let x1 = radius * Math.cos(phi);
-		let z1 = radius * Math.sin(phi);
-		let x2 = radius * Math.cos(phi + step);
-		let z2 = radius * Math.sin(phi + step);
-
-		// Første trekant i rektanglet
-		positionsArray = positionsArray.concat(x1, -height / 2, z1);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		positionsArray = positionsArray.concat(x2, -height / 2, z2);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		positionsArray = positionsArray.concat(x1, height / 2, z1);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		// Andre trekant i rektanglet
-		positionsArray = positionsArray.concat(x1, height / 2, z1);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		positionsArray = positionsArray.concat(x2, -height / 2, z2);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		positionsArray = positionsArray.concat(x2, height / 2, z2);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		phi += step;
-	}
 
 	let positions = new Float32Array(positionsArray);
 	let colors = new Float32Array(colorsArray);
@@ -281,39 +269,42 @@ function draw(gl, baseShaderInfo, buffers) {
 
 	gl.useProgram(baseShaderInfo.program);
 
-	// Tegn koordinatsystemet først
+	// Draw the coordinate system first
 	const coordBuffers = initCoordBuffer(gl);
 	connectPositionAttribute(gl, baseShaderInfo, coordBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, coordBuffers.color);
 
-	let coordMatrix = new Matrix4();
-	coordMatrix.setIdentity();
 	let cameraMatrixes = initCamera(gl);
-	let coordViewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(coordMatrix));
 
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, coordViewMatrix.elements);
+	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, cameraMatrixes.viewMatrix.elements);
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
 
-	gl.drawArrays(gl.LINES, 0, coordBuffers.vertexCount);  // Tegner koordinatsystemet som linjer
+	gl.drawArrays(gl.LINES, 0, coordBuffers.vertexCount);
 
-	// Tegn sylinderen
+	// Draw the cylinder
 	connectPositionAttribute(gl, baseShaderInfo, buffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.color);
 
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.translate(20.0, 0.0, -2.0);  // Keep the current position
+	modelMatrix.translate(20.0, -10.0, 5.0);  // Keep the current position
 	modelMatrix.rotate(-45, 0, 1, 0);  // Rotate -45 degrees around the Y-axis to tilt to the left
-
-
-
-
 
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
 
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
 
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.vertexCount);  // Tegner sylinderen
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.vertexCount);
+
+	// Draw the black lines around the cylinder's top and bottom
+	const lineBuffers = initLineBuffers(gl);
+	connectPositionAttribute(gl, baseShaderInfo, lineBuffers.position);
+
+	// Set color to black for the lines
+	gl.vertexAttrib4f(baseShaderInfo.attribLocations.vertexColor, 0.0, 0.0, 0.0, 1.0);
+
+	gl.drawArrays(gl.LINES, 0, lineBuffers.vertexCount);
 }
+
 
