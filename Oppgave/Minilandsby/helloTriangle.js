@@ -43,10 +43,10 @@ function initBaseShaders(gl) {
  */
 // Example of a slight camera position adjustment
 function initCamera(gl) {
-	let eyeX = 7, eyeY = 7, eyeZ = 10;  // Slight offset to make the blue line visible
+	let eyeX = 5, eyeY = 20, eyeZ = 30; // Move the camera further back to see more
 	let lookX = 0, lookY = 0, lookZ = 0;
 
-	let upX = 0, upY = 1, upZ = 0;
+	let upX = 0.0, upY = 1, upZ = 0;
 
 	let viewMatrix = new Matrix4();
 	let projectionMatrix = new Matrix4();
@@ -77,12 +77,13 @@ function initBuffers(gl) {
 	if (stepGrader <= 2)
 		stepGrader = 3;
 	let step = (Math.PI / 180) * stepGrader;
-	let r = 0.8, g = 0.50, b = 0.3, a = 1.0;
+
+	let r = 0.68, g = 0.85, b = 0.90, a = 1.0; // Fargen på sylinderet
 	let positionsArray = [];
 	let colorsArray = [];
 
-	let height = 2.0; // Høyden på sylinderen
-	let radius = 1.0; // Radius på sylinderen
+	let height = 10.0; // Høyden på sylinderen
+	let radius = 0.5; // Radius på sylinderen
 
 	// Generer toppsirkelen
 	let x = 0, y = height / 2, z = 0; // Topp midtpunkt
@@ -170,7 +171,7 @@ function initBuffers(gl) {
 
 
 function initCoordBuffer(gl) {
-	const extent =  100;
+	const extent =  500;
 
 	// Positions for 6 points (each pair forms a line)
 	const positions = new Float32Array([
@@ -264,7 +265,7 @@ function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
  * Kalles fra draw()
  */
 function clearCanvas(gl) {
-	gl.clearColor(0.9, 0.9, 0.9, 1);  // Clear screen farge.
+	gl.clearColor(0.99, 0.99, 0.99, 1);  // Clear screen farge.
 	gl.clearDepth(1.0);
 	gl.enable(gl.DEPTH_TEST);           // Enable "depth testing".
 	gl.depthFunc(gl.LEQUAL);            // Nære objekter dekker fjerne objekter.
@@ -301,7 +302,12 @@ function draw(gl, baseShaderInfo, buffers) {
 
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.rotate(45, 0, 1, 0);  // Rotate around Y-axis to give a better perspective
+	modelMatrix.translate(20.0, 0.0, -2.0);  // Keep the current position
+	modelMatrix.rotate(-45, 0, 1, 0);  // Rotate -45 degrees around the Y-axis to tilt to the left
+
+
+
+
 
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
 
