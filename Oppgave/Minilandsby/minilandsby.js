@@ -332,6 +332,7 @@ function initRoadBuffers(gl) {
 		0.6, 0.6, 0.6, 1.0,   // Gray color
 	]);
 
+
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
