@@ -8,6 +8,11 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
 	let cameraPosition = {x:0,y:500,z:500}
+	let windmillAngel = 0;
+	setInterval(() => {
+		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
+		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+	},50)
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
@@ -23,11 +28,11 @@ export function main() {
 		windMillBuffers: initWindMillBuffers(webGLCanvas.gl),
 
 	};
-	draw(gl, baseShaderInfo, renderInfo, cameraPosition);
-	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition);
+	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
-function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
+function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel){
 	document.onwheel = (e) => {
 		if(e.deltaY > 0 ){
 			cameraPosition.x = cameraPosition.x * 0.9
@@ -39,7 +44,7 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 			cameraPosition.y = cameraPosition.y * 1.1
 			cameraPosition.z = cameraPosition.z * 1.1
 		}
-		draw(gl, baseShaderInfo, renderInfo, cameraPosition);
+		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	}
 	document.onkeydown = (e) => {
 		if(e.code === "ArrowLeft"){
@@ -54,7 +59,7 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 			cameraPosition.x = Math.cos(angle + Math.PI/12) * radius
 			cameraPosition.z = Math.sin(angle + Math.PI/12) * radius
 		}
-		draw(gl, baseShaderInfo, renderInfo, cameraPosition);
+		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	}
 }
 
@@ -490,7 +495,7 @@ function clearCanvas(gl) {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-function draw(gl, baseShaderInfo, buffers, cameraPosition) {
+function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	clearCanvas(gl);
 
 	gl.useProgram(baseShaderInfo.program);
@@ -516,6 +521,18 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition) {
 	connectPositionAttribute(gl, baseShaderInfo, buffers.roadBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.roadBuffers.color);
 
+	// Lag viewmodel-matrisa:
+	let modelMatrix = new Matrix4();
+	modelMatrix.setIdentity();
+	modelMatrix.translate(6, 0,-8);
+	modelMatrix.rotate(angle, 0,1,0);
+
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	// Send matrisene til shaderen:
+	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
 
@@ -524,5 +541,4 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition) {
 	connectColorAttribute(gl, baseShaderInfo, buffers.windMillBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLES, 0, buffers.windMillBuffers.vertexCount);
-
 }
