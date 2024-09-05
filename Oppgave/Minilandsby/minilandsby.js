@@ -7,7 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 960, 640);
+	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
 	let renderInfo = {
@@ -16,6 +16,7 @@ export function main() {
 		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
 		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
+		houseBuffers: initHouse(webGLCanvas.gl),
 	};
 	draw(gl, baseShaderInfo, renderInfo);
 }
@@ -42,16 +43,9 @@ function initBaseShaders(gl) {
 	};
 }
 
-
-/**
- * Genererer view- og projeksjonsmatrisene.
- * Disse utgjør tilsanmmen det virtuelle kameraet.
- */
-// Example of a slight camera position adjustment
 function initCamera(gl) {
-	let eyeX = 50, eyeY = -500, eyeZ = 500; // Move the camera further back to see more
+	let eyeX = 0, eyeY = -500, eyeZ = 500; // Move the camera further back to see more
 	let lookX = 0, lookY = 0, lookZ = 0;
-
 	let upX = 0.0, upY = 1, upZ = 0;
 
 	let viewMatrix = new Matrix4();
@@ -71,13 +65,7 @@ function initCamera(gl) {
 	};
 }
 
-
-/**
- * Oppretter verteksbuffer for trekanten.
- * Et posisjonsbuffer og et fargebuffer.
- * MERK: Må være likt antall posisjoner og farger.
- */
-function inithouse(gl) {
+function initHouse(gl) {
 	// 8 hjørnepunkter i en kube
 	const positions = new Float32Array([
 		-1, -1, -1,  // 0: Venstre, bak, bunn
@@ -223,7 +211,7 @@ function initCylinderBuffers(gl) {
 }
 
 function initGrassBuffers(gl) {
-	const extent =  500;
+	const extent =  700;
 
 	// Positions for 6 points (each pair forms a line)
 	const positions = new Float32Array([
@@ -259,7 +247,7 @@ function initGrassBuffers(gl) {
 }
 
 function initCoordsBuffers(gl) {
-	const extent =  500;
+	const extent =  700;
 
 	// Positions for 6 points (each pair forms a line)
 	const positions = new Float32Array([
@@ -280,10 +268,10 @@ function initCoordsBuffers(gl) {
 	const colors = new Float32Array([
 		1, 0, 0, 1,  // Red
 		1, 0, 0, 1,  // Red
-		1, 0, 1, 1,  // Purple
-		1, 0, 1, 1,  // Purple
-		0, 0, 1, 1,  // Blue
-		0, 0, 1, 1   // Blue
+		1, 1, 0, 1,  // Yellow
+		1, 1, 0, 1,  // Yellow
+		0, 0, 0, 1,  // Black
+		0, 0, 0, 1   // Black
 	]);
 
 	const positionBuffer = gl.createBuffer();
@@ -303,13 +291,6 @@ function initCoordsBuffers(gl) {
 	};
 }
 
-
-
-
-/**
- * Aktiverer position-bufferet.
- * Kalles fra draw()
- */
 function connectPositionAttribute(gl, baseShaderInfo, positionBuffer) {
 	const numComponents = 3;
 	const type = gl.FLOAT;
@@ -327,10 +308,6 @@ function connectPositionAttribute(gl, baseShaderInfo, positionBuffer) {
 	gl.enableVertexAttribArray(baseShaderInfo.attribLocations.vertexPosition);
 }
 
-/**
- * Aktiverer color-bufferet.
- * Kalles fra draw()
- */
 function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
 	const numComponents = 4;
 	const type = gl.FLOAT;
@@ -348,22 +325,15 @@ function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
 	gl.enableVertexAttribArray(baseShaderInfo.attribLocations.vertexColor);
 }
 
-/**
- * Klargjør canvaset.
- * Kalles fra draw()
- */
 function clearCanvas(gl) {
-	gl.clearColor(0, 0, 1, 1);  // Clear screen farge.
+	gl.clearColor(0, 0.8, 1, 0.2);  // Clear screen farge.
 	gl.clearDepth(1.0);
 	gl.enable(gl.DEPTH_TEST);           // Enable "depth testing".
 	gl.depthFunc(gl.LEQUAL);            // Nære objekter dekker fjerne objekter.
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-/**
- * Tegner!
- *
- */
+
 function draw(gl, baseShaderInfo, buffers) {
 	clearCanvas(gl);
 
@@ -387,9 +357,10 @@ function draw(gl, baseShaderInfo, buffers) {
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.cylinderBuffers.vertexCount);
 
 	// Draw the grass/ground
-
 	connectPositionAttribute(gl, baseShaderInfo, buffers.grassBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
+
+
 }
