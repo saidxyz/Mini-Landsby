@@ -7,7 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let cameraPosition = {x:0,y:500,z:-500}
+	let cameraPosition = {x:0,y:500,z:500}
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
@@ -24,6 +24,10 @@ export function main() {
 
 	};
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition);
+	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition);
+}
+
+function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 	document.onwheel = (e) => {
 		if(e.deltaY > 0 ){
 			cameraPosition.x = cameraPosition.x * 0.9
@@ -288,10 +292,16 @@ function initCylinderBuffers(gl) {
 function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
-		-5, 0, -5,  // Bottom left
-		5, 0, -5,   // Bottom right
-		5, 0, 5,    // Top right
-		-5, 0, 5    // Top left
+		// Road 1
+		-25, 0, -1,  // Top left
+		25, 0, -1,   // Top right
+		-25, 0, 1,    // bottom left
+		25, 0, 1,    // Bottom right
+		// Road 2
+		-1, 0, -25,  // Top left
+		1, 0, -25,   // Top right
+		-1, 0, 25,    // bottom left
+		1, 0, 25,    // Bottom right
 	]);
 
 	// Define colors for the floor vertices
@@ -299,7 +309,11 @@ function initRoadBuffers(gl) {
 		0.6, 0.6, 0.6, 1.0,  // Gray color
 		0.6, 0.6, 0.6, 1.0,  // Gray color
 		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0   // Gray color
+		0.6, 0.6, 0.6, 1.0,   // Gray color
+		0.6, 0.6, 0.6, 1.0,  // Gray color
+		0.6, 0.6, 0.6, 1.0,  // Gray color
+		0.6, 0.6, 0.6, 1.0,  // Gray color
+		0.6, 0.6, 0.6, 1.0,   // Gray color
 	]);
 
 	const positionBuffer = gl.createBuffer();
@@ -503,6 +517,7 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition) {
 	connectColorAttribute(gl, baseShaderInfo, buffers.roadBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
 
 	// Draw the Windmill
 	connectPositionAttribute(gl, baseShaderInfo, buffers.windMillBuffers.position);
