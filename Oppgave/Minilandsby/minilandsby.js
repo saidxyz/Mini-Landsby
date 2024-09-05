@@ -17,12 +17,11 @@ export function main() {
 		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),
 		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
+		roadBuffers: initRoadBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 		coneBuffers: initCone(webGLCanvas.gl),
-		triangleBuffers: initTriangle(webGLCanvas.gl),
-		floorBuffers: initFloorBuffers(webGLCanvas.gl),
-		thickLineBuffers: initThickLine(webGLCanvas.gl, 10, 100),
-		triangleLineBuffers: initTriangleLine(webGLCanvas.gl, 10, 100),
+		windMillBuffers: initWindMillBuffers(webGLCanvas.gl),
+
 	};
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition);
 	document.onwheel = (e) => {
@@ -42,14 +41,14 @@ export function main() {
 		if(e.code === "ArrowLeft"){
 			let radius = (cameraPosition.x**2 + cameraPosition.z**2)**(1/2)
 			let angle = Math.atan2(cameraPosition.z, cameraPosition.x);
-			cameraPosition.x = Math.cos(angle - Math.PI/6) * radius
-			cameraPosition.z = Math.sin(angle - Math.PI/6) * radius
+			cameraPosition.x = Math.cos(angle - Math.PI/12) * radius
+			cameraPosition.z = Math.sin(angle - Math.PI/12) * radius
 		}
 		if(e.code === "ArrowRight"){
 			let radius = (cameraPosition.x**2 + cameraPosition.z**2)**(1/2)
 			let angle = Math.atan2(cameraPosition.z, cameraPosition.x);
-			cameraPosition.x = Math.cos(angle + Math.PI/6) * radius
-			cameraPosition.z = Math.sin(angle + Math.PI/6) * radius
+			cameraPosition.x = Math.cos(angle + Math.PI/12) * radius
+			cameraPosition.z = Math.sin(angle + Math.PI/12) * radius
 		}
 		draw(gl, baseShaderInfo, renderInfo, cameraPosition);
 	}
@@ -286,7 +285,7 @@ function initCylinderBuffers(gl) {
 	};
 }
 
-function initFloorBuffers(gl) {
+function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
 		-5, 0, -5,  // Bottom left
@@ -297,10 +296,10 @@ function initFloorBuffers(gl) {
 
 	// Define colors for the floor vertices
 	const colors = new Float32Array([
-		0.5, 0.3, 0.1, 1.0,  // Brown
-		0.5, 0.3, 0.1, 1.0,  // Brown
-		0.5, 0.3, 0.1, 1.0,  // Brown
-		0.5, 0.3, 0.1, 1.0   // Brown
+		0.6, 0.6, 0.6, 1.0,  // Gray color
+		0.6, 0.6, 0.6, 1.0,  // Gray color
+		0.6, 0.6, 0.6, 1.0,  // Gray color
+		0.6, 0.6, 0.6, 1.0   // Gray color
 	]);
 
 	const positionBuffer = gl.createBuffer();
@@ -320,14 +319,16 @@ function initFloorBuffers(gl) {
 	};
 }
 
-function initThickLine(gl, width, length) {
+function initWindMillBuffers(gl, width, length) {
 	const halfWidth = width / 2;
 	const halfLength = length / 2;
+	const sharpEndLength = length / 4;
 	const positions = new Float32Array([
 		-halfWidth, halfLength, 0.0,  // Top-left
 		halfWidth, halfLength, 0.0,  // Top-right
 		-halfWidth, -halfLength, 0.0, // Bottom-left
 		halfWidth, -halfLength, 0.0  // Bottom-right
+
 	]);
 
 	const colors = new Float32Array([
@@ -349,102 +350,6 @@ function initThickLine(gl, width, length) {
 		position: positionBuffer,
 		color: colorBuffer,
 		vertexCount: 4
-	};
-}
-
-function initTriangleLine(gl, width, length) {
-	const halfWidth = width / 2;
-	const halfLength = length / 2;
-	const positions = new Float32Array([
-		// Triangle 1
-		-halfWidth, halfLength, 0.0,  // Top-left
-		halfWidth, halfLength, 0.0,  // Top-right
-		-halfWidth, -halfLength, 0.0, // Bottom-left
-
-		// Triangle 2
-		halfWidth, halfLength, 0.0,  // Top-right
-		halfWidth, -halfLength, 0.0, // Bottom-right
-		-halfWidth, -halfLength, 0.0  // Bottom-left
-	]);
-
-	const colors = new Float32Array([
-		0.6, 0.6, 0.6, 1.0,  // Gray color for top-left
-		0.6, 0.6, 0.6, 1.0,  // Gray color for top-right
-		0.6, 0.6, 0.6, 1.0,  // Gray color for bottom-left
-		0.6, 0.6, 0.6, 1.0,  // Gray color for top-right
-		0.6, 0.6, 0.6, 1.0,  // Gray color for bottom-right
-		0.6, 0.6, 0.6, 1.0   // Gray color for bottom-left
-	]);
-
-	const positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-	const colorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-
-	return {
-		position: positionBuffer,
-		color: colorBuffer,
-		vertexCount: 6  // Two triangles, three vertices each
-	};
-}
-
-
-
-
-function initTriangle(gl) {
-	const positions = new Float32Array([
-		//Triangle 1
-		0.6, 0.6, 0,      // X Y Z
-		0.4, -0.6, 0,  // X Y Z
-		0.8, -0.6, 0,   // X Y Z
-		//Triangle 2
-		-0.6, 0.6, 0,      // X Y Z
-		-0.4, -0.6, 0,  // X Y Z
-		-0.8, -0.6, 0,   // X Y Z
-		//Triangle 3
-		0.2, -0.6, 0,   // X Y Z
-		-0.2, -0.6, 0,   // X Y Z
-		0.0, 0.6, 0.,    // X Y Z
-
-	]);
-
-	const colors = new Float32Array([
-		//Triangle 1
-		1.0, 0.2, 0.3, 1.0,      // R G B A
-		0.2, 0.2, 1.0, 1.0,      // R G B A
-		0.8, 0.6, 0, 1.0,      // R G B A
-		//Triangle 2
-		0.1, 0.2, 0.3, 1.0,      // R G B A
-		0.2, 0.6, 0.5, 1.0,      // R G B A
-		0.1, 0.5, 0.1, 1.0,      // R G B A
-		//Triangle 3
-		0.1, 0.3, 0.2, 1.0,      // R G B A
-		0.1, 0.2, 0.4, 1.0,      // R G B A
-		0.1, 0.1, 0.5, 1.0,      // R G B A
-
-	]);
-	const positionBuffer = gl.createBuffer();
-	const colorBuffer = gl.createBuffer();
-	// Kopler til
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	// Fyller
-	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-	// Kopler fra
-	gl.bindBuffer(gl.ARRAY_BUFFER, null);
-	// Kopler til
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	// Fyller
-	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-	// Kopler fra
-	gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-	return  {
-		position: positionBuffer,
-		color: colorBuffer,
-		vertexCount: positions.length/3
 	};
 }
 
@@ -571,7 +476,6 @@ function clearCanvas(gl) {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-
 function draw(gl, baseShaderInfo, buffers, cameraPosition) {
 	clearCanvas(gl);
 
@@ -588,35 +492,22 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition) {
 
 	gl.drawArrays(gl.LINES, 0, buffers.coordsBuffers.vertexCount);
 
-
-	// Draw the cylinder
-	connectPositionAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.color);
-
-	//gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.cylinderBuffers.vertexCount);
-
 	// Draw the grass/ground
 	connectPositionAttribute(gl, baseShaderInfo, buffers.grassBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
 
-	// Draw the cube
-	//gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.houseBuffers.indices);
-	//gl.drawElements(gl.TRIANGLES, buffers.houseBuffers.vertexCount, gl.UNSIGNED_SHORT, 0);
+	// Draw the road
+	connectPositionAttribute(gl, baseShaderInfo, buffers.roadBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.roadBuffers.color);
 
-	// Draw the triangle
-	// connectPositionAttribute(gl, baseShaderInfo, buffers.triangleBuffers.position);
-	// connectColorAttribute(gl, baseShaderInfo, buffers.triangleBuffers.color);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+	// Draw the Windmill
+	connectPositionAttribute(gl, baseShaderInfo, buffers.windMillBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.windMillBuffers.color);
 
-	// Draw the thick line
-	//connectPositionAttribute(gl, baseShaderInfo, buffers.thickLineBuffers.position);
-	//connectColorAttribute(gl, baseShaderInfo, buffers.thickLineBuffers.color);
-	//gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.thickLineBuffers.vertexCount);
+	gl.drawArrays(gl.TRIANGLES, 0, buffers.windMillBuffers.vertexCount);
 
-	// Draw the triangle-based thick line
-	connectPositionAttribute(gl, baseShaderInfo, buffers.triangleLineBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.triangleLineBuffers.color);
-	gl.drawArrays(gl.TRIANGLES, 0, buffers.triangleLineBuffers.vertexCount);
 }
