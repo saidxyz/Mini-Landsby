@@ -76,6 +76,64 @@ function initCamera(gl) {
  * Et posisjonsbuffer og et fargebuffer.
  * MERK: Må være likt antall posisjoner og farger.
  */
+function inithouse(gl) {
+	// 8 hjørnepunkter i en kube
+	const positions = new Float32Array([
+		-1, -1, -1,  // 0: Venstre, bak, bunn
+		1, -1, -1,  // 1: Høyre, bak, bunn
+		1,  1, -1,  // 2: Høyre, bak, topp
+		-1,  1, -1,  // 3: Venstre, bak, topp
+		-1, -1,  1,  // 4: Venstre, front, bunn
+		1, -1,  1,  // 5: Høyre, front, bunn
+		1,  1,  1,  // 6: Høyre, front, topp
+		-1,  1,  1   // 7: Venstre, front, topp
+	]);
+
+	// Farger for hvert hjørnepunkt
+	const colors = new Float32Array([
+		1, 0, 0, 1,  // Rød
+		0, 1, 0, 1,  // Grønn
+		0, 0, 1, 1,  // Blå
+		1, 1, 0, 1,  // Gul
+		1, 0, 1, 1,  // Magenta
+		0, 1, 1, 1,  // Cyan
+		1, 0.5, 0, 1, // Oransje
+		0.5, 0, 0.5, 1  // Lilla
+	]);
+
+	// Indekser for å definere hver trekant i kuben
+	const indices = new Uint16Array([
+		0, 1, 2,   0, 2, 3,   // Bakside
+		4, 5, 6,   4, 6, 7,   // Fremside
+		3, 2, 6,   3, 6, 7,   // Topp
+		0, 1, 5,   0, 5, 4,   // Bunn
+		0, 3, 7,   0, 7, 4,   // Venstre
+		1, 2, 6,   1, 6, 5    // Høyre
+	]);
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const indexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		indices: indexBuffer,
+		vertexCount: indices.length
+	};
+}
+
 function initCylinderBuffers(gl) {
 	let sectors = 12;
 	let stepGrader = 360.0 / sectors;
