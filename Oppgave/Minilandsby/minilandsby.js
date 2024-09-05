@@ -15,6 +15,7 @@ export function main() {
 		baseShaderInfo: initBaseShaders(webGLCanvas.gl),
 		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
 		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
+		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 	};
 	draw(gl, baseShaderInfo, renderInfo);
 }
@@ -221,7 +222,41 @@ function initCylinderBuffers(gl) {
 	};
 }
 
+function initGrassBuffers(gl) {
+	const extent =  500;
 
+	// Positions for 6 points (each pair forms a line)
+	const positions = new Float32Array([
+		extent, -extent, -1,
+		-extent, -extent, -1,
+		-extent, extent, -1,
+		extent, extent, -1,
+	]);
+
+	// Colors corresponding to each point
+	const colors = new Float32Array([
+		0, 1, 0, 1,  // Green
+		0, 1, 0, 1,  // Green
+		0, 1, 0, 1,  // Green
+		0, 1, 0, 1,  // Green
+	]);
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length / 3  // 6 vertices, so vertexCount is 6
+	};
+}
 
 function initCoordsBuffers(gl) {
 	const extent =  500;
