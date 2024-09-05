@@ -43,7 +43,7 @@ function initBaseShaders(gl) {
  */
 // Example of a slight camera position adjustment
 function initCamera(gl) {
-	let eyeX = 5, eyeY = 20, eyeZ = 30; // Move the camera further back to see more
+	let eyeX = 0, eyeY = 20, eyeZ = 30; // Move the camera further back to see more
 	let lookX = 0, lookY = 0, lookZ = 0;
 
 	let upX = 0.0, upY = 1, upZ = 0;
@@ -287,8 +287,9 @@ function draw(gl, baseShaderInfo, buffers) {
 
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.translate(20.0, -10.0, 5.0);  // Keep the current position
-	modelMatrix.rotate(-45, 0, 1, 0);  // Rotate -45 degrees around the Y-axis to tilt to the left
+	modelMatrix.rotate(0, 0, 1, 0);
+	modelMatrix.translate(20.0, -10.0, 5.0);
+
 
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
 
