@@ -18,7 +18,7 @@ export function main() {
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 		coneBuffers: initCone(webGLCanvas.gl),
-		floorBuffer: initTriangle(webGLCanvas.gl),
+		triangleBuffers: initTriangle(webGLCanvas.gl),
 	};
 	draw(gl, baseShaderInfo, renderInfo);
 }
@@ -460,5 +460,16 @@ function draw(gl, baseShaderInfo, buffers) {
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
 
+	// Draw the cube
+	//gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.houseBuffers.indices);
+	//gl.drawElements(gl.TRIANGLES, buffers.houseBuffers.vertexCount, gl.UNSIGNED_SHORT, 0);
+
+	// Draw the triangle
+	connectPositionAttribute(gl, baseShaderInfo, buffers.triangleBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.triangleBuffers.color);
+
+
+
+	gl.drawArrays(gl.TRIANGLES, 0, buffers.triangleBuffers.vertexCount);
 
 }
