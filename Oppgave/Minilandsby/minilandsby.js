@@ -10,8 +10,13 @@ export function main() {
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 960, 640);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
-	let buffers = initBuffers(gl);
-	draw(gl, baseShaderInfo, buffers);
+	let renderInfo = {
+		gl: webGLCanvas.gl,
+		baseShaderInfo: initBaseShaders(webGLCanvas.gl),
+		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
+		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
+	};
+	draw(gl, baseShaderInfo, renderInfo);
 }
 
 function initBaseShaders(gl) {
@@ -71,7 +76,7 @@ function initCamera(gl) {
  * Et posisjonsbuffer og et fargebuffer.
  * MERK: Må være likt antall posisjoner og farger.
  */
-function initBuffers(gl) {
+function initCylinderBuffers(gl) {
 	let sectors = 12;
 	let stepGrader = 360.0 / sectors;
 	if (stepGrader <= 2)
@@ -121,7 +126,9 @@ function initBuffers(gl) {
 	}
 
 	// Generer bunnsirkelen
-	x = 0, y = -height / 2, z = 0; // Bunn midtpunkt
+	x = 0           // Bunn midtpunkt
+	y = -height / 2 // Bunn midtpunkt
+	z = 0;          // Bunn midtpunkt
 	positionsArray = positionsArray.concat(x, y, z);
 	colorsArray = colorsArray.concat(r, g, b, a);
 
@@ -158,7 +165,7 @@ function initBuffers(gl) {
 
 
 
-function initCoordBuffer(gl) {
+function initCoordsBuffers(gl) {
 	const extent =  500;
 
 	// Positions for 6 points (each pair forms a line)
@@ -270,20 +277,19 @@ function draw(gl, baseShaderInfo, buffers) {
 	gl.useProgram(baseShaderInfo.program);
 
 	// Draw the coordinate system first
-	const coordBuffers = initCoordBuffer(gl);
-	connectPositionAttribute(gl, baseShaderInfo, coordBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, coordBuffers.color);
+	connectPositionAttribute(gl, baseShaderInfo, buffers.coordsBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.coordsBuffers.color);
 
 	let cameraMatrixes = initCamera(gl);
 
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, cameraMatrixes.viewMatrix.elements);
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
 
-	gl.drawArrays(gl.LINES, 0, coordBuffers.vertexCount);
+	gl.drawArrays(gl.LINES, 0, buffers.coordsBuffers.vertexCount);
 
 	// Draw the cylinder
-	connectPositionAttribute(gl, baseShaderInfo, buffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.color);
+	connectPositionAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.color);
 
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
@@ -295,16 +301,5 @@ function draw(gl, baseShaderInfo, buffers) {
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
 
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.vertexCount);
-
-	// Draw the black lines around the cylinder's top and bottom
-	const lineBuffers = initLineBuffers(gl);
-	connectPositionAttribute(gl, baseShaderInfo, lineBuffers.position);
-
-	// Set color to black for the lines
-	gl.vertexAttrib4f(baseShaderInfo.attribLocations.vertexColor, 0.0, 0.0, 0.0, 1.0);
-
-	gl.drawArrays(gl.LINES, 0, lineBuffers.vertexCount);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.cylinderBuffers.vertexCount);
 }
-
-
