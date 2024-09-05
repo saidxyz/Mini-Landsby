@@ -20,12 +20,12 @@ export function main() {
 		gl: webGLCanvas.gl,
 		baseShaderInfo: initBaseShaders(webGLCanvas.gl),
 		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),
-		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 		roadBuffers: initRoadBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 		coneBuffers: initCone(webGLCanvas.gl),
 		propellerBuffers: initPropellerBuffers(webGLCanvas.gl),
+		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
 
 	};
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
@@ -207,93 +207,6 @@ function initHouse(gl) {
 	};
 }
 
-function initCylinderBuffers(gl) {
-	let sectors = 12;
-	let stepGrader = 360.0 / sectors;
-	if (stepGrader <= 2)
-		stepGrader = 3;
-	let step = (Math.PI / 180) * stepGrader;
-
-	let r = 0.68, g = 0.85, b = 0.90, a = 1.0; // Fargen på sylinderet
-	let positionsArray = [];
-	let colorsArray = [];
-
-	let height = 10.0; // Høyden på sylinderen
-	let radius = 0.5; // Radius på sylinderen
-
-	// Generer toppsirkelen
-	let x = 0, y = height / 2, z = 0; // Topp midtpunkt
-	positionsArray = positionsArray.concat(x, y, z);
-	colorsArray = colorsArray.concat(r, g, b, a);
-
-	let phi = 0.0;
-
-	// Create lines for the top circle
-	for (let sector = 1; sector <= sectors + 1; sector++) {
-		let x1 = radius * Math.cos(phi);
-		let z1 = radius * Math.sin(phi);
-		let x2 = radius * Math.cos(phi + step);
-		let z2 = radius * Math.sin(phi + step);
-
-		// Top circle
-		positionsArray = positionsArray.concat(x1, height / 2, z1);
-		positionsArray = positionsArray.concat(x2, height / 2, z2);
-
-		// Bottom circle
-		positionsArray = positionsArray.concat(x1, -height / 2, z1);
-		positionsArray = positionsArray.concat(x2, -height / 2, z2);
-
-		phi += step;
-	}
-	for (let sector = 1; sector <= sectors + 2; sector++) {
-		x = radius * Math.cos(phi);
-		y = height / 2;
-		z = radius * Math.sin(phi);
-
-		positionsArray = positionsArray.concat(x, y, z);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		phi += step;
-	}
-
-	// Generer bunnsirkelen
-	x = 0           // Bunn midtpunkt
-	y = -height / 2 // Bunn midtpunkt
-	z = 0;          // Bunn midtpunkt
-	positionsArray = positionsArray.concat(x, y, z);
-	colorsArray = colorsArray.concat(r, g, b, a);
-
-	phi = 0.0;
-	for (let sector = 1; sector <= sectors + 2; sector++) {
-		x = radius * Math.cos(phi);
-		y = -height / 2;
-		z = radius * Math.sin(phi);
-
-		positionsArray = positionsArray.concat(x, y, z);
-		colorsArray = colorsArray.concat(r, g, b, a);
-
-		phi += step;
-	}
-
-
-	let positions = new Float32Array(positionsArray);
-	let colors = new Float32Array(colorsArray);
-
-	const positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-	const colorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-
-	return {
-		position: positionBuffer,
-		color: colorBuffer,
-		vertexCount: positions.length / 3,
-	};
-}
-
 function initPropellerBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
@@ -347,6 +260,102 @@ function initPropellerBuffers(gl) {
 		position: positionBuffer,
 		color: colorBuffer,
 		vertexCount: positions.length / 3  // 4 vertices
+	};
+}
+
+function initCylinderBuffers(gl) {
+	let sectors = 12;
+	let stepGrader = 360.0 / sectors;
+	if (stepGrader <= 2)
+		stepGrader = 3;
+	let step = (Math.PI / 180) * stepGrader;
+	let r = 0.8, g = 0.50, b = 0.3, a = 1.0;
+	let positionsArray = [];
+	let colorsArray = [];
+
+	let height = 2.0; // Høyden på sylinderen
+	let radius = 1.0; // Radius på sylinderen
+
+	// Generer toppsirkelen
+	let x = 0, y = height / 2, z = 0; // Topp midtpunkt
+	positionsArray = positionsArray.concat(x, y, z);
+	colorsArray = colorsArray.concat(r, g, b, a);
+
+	let phi = 0.0;
+	for (let sector = 1; sector <= sectors + 2; sector++) {
+		x = radius * Math.cos(phi);
+		y = height / 2;
+		z = radius * Math.sin(phi);
+
+		positionsArray = positionsArray.concat(x, y, z);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		phi += step;
+	}
+
+	// Generer bunnsirkelen
+	x = 0, y = -height / 2, z = 0; // Bunn midtpunkt
+	positionsArray = positionsArray.concat(x, y, z);
+	colorsArray = colorsArray.concat(r, g, b, a);
+
+	phi = 0.0;
+	for (let sector = 1; sector <= sectors + 2; sector++) {
+		x = radius * Math.cos(phi);
+		y = -height / 2;
+		z = radius * Math.sin(phi);
+
+		positionsArray = positionsArray.concat(x, y, z);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		phi += step;
+	}
+
+	// Generer sideflatene
+	phi = 0.0;
+	for (let sector = 1; sector <= sectors + 1; sector++) {
+		let x1 = radius * Math.cos(phi);
+		let z1 = radius * Math.sin(phi);
+		let x2 = radius * Math.cos(phi + step);
+		let z2 = radius * Math.sin(phi + step);
+
+		// Første trekant i rektanglet
+		positionsArray = positionsArray.concat(x1, -height / 2, z1);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		positionsArray = positionsArray.concat(x2, -height / 2, z2);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		positionsArray = positionsArray.concat(x1, height / 2, z1);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		// Andre trekant i rektanglet
+		positionsArray = positionsArray.concat(x1, height / 2, z1);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		positionsArray = positionsArray.concat(x2, -height / 2, z2);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		positionsArray = positionsArray.concat(x2, height / 2, z2);
+		colorsArray = colorsArray.concat(r, g, b, a);
+
+		phi += step;
+	}
+
+	let positions = new Float32Array(positionsArray);
+	let colors = new Float32Array(colorsArray);
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length / 3,
 	};
 }
 
@@ -538,6 +547,12 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
+	// Draw sylinder for windmill
+	connectPositionAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.color);
+
+
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.cylinderBuffers.vertexCount);  // Tegner sylinderen
 
 	// Draw the road
 	connectPositionAttribute(gl, baseShaderInfo, buffers.roadBuffers.position);
@@ -565,4 +580,5 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 8, 4);
+
 }
