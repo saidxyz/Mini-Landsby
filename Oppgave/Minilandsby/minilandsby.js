@@ -18,7 +18,7 @@ export function main() {
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 		coneBuffers: initCone(webGLCanvas.gl),
-		floorBuffer: initFloor(webGLCanvas.gl),
+		floorBuffer: initTriangle(webGLCanvas.gl),
 	};
 	draw(gl, baseShaderInfo, renderInfo);
 }
@@ -254,7 +254,7 @@ function initCylinderBuffers(gl) {
 	};
 }
 
-function initFloor(gl) {
+function initTriangle(gl) {
 	const positions = new Float32Array([
 		//Triangle 1
 		0.6, 0.6, 0,      // X Y Z
