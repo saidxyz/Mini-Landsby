@@ -7,6 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
+	let cameraPosition = {x:0,y:-500,z:500}
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
@@ -18,7 +19,23 @@ export function main() {
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 	};
-	draw(gl, baseShaderInfo, renderInfo);
+	draw(gl, baseShaderInfo, renderInfo, cameraPosition);
+	document.onwheel = (e) => {
+		console.log("yep" + e.deltaY)
+		if(e.deltaY > 0 ){
+			cameraPosition.x = cameraPosition.x * 0.9
+			cameraPosition.y = cameraPosition.y * 0.9
+			cameraPosition.z = cameraPosition.z * 0.9
+		}
+		if(e.deltaY < 0 ){
+			cameraPosition.x = cameraPosition.x * 1.1
+			cameraPosition.y = cameraPosition.y * 1.1
+			cameraPosition.z = cameraPosition.z * 1.1
+		}
+		draw(gl, baseShaderInfo, renderInfo, cameraPosition);
+		console.log(cameraPosition)
+	}
+	//document.onkeydown()
 }
 
 function initBaseShaders(gl) {
@@ -43,8 +60,8 @@ function initBaseShaders(gl) {
 	};
 }
 
-function initCamera(gl) {
-	let eyeX = 0, eyeY = -500, eyeZ = 500; // Move the camera further back to see more
+function initCamera(gl, eye = {x:0,y:-500,z:500}) {
+	let eyeX = eye.x, eyeY = eye.y, eyeZ = eye.z; // Move the camera further back to see more
 	let lookX = 0, lookY = 0, lookZ = 0;
 	let upX = 0.0, upY = 1, upZ = 0;
 
@@ -334,7 +351,7 @@ function clearCanvas(gl) {
 }
 
 
-function draw(gl, baseShaderInfo, buffers) {
+function draw(gl, baseShaderInfo, buffers, cameraPosition) {
 	clearCanvas(gl);
 
 	gl.useProgram(baseShaderInfo.program);
@@ -343,7 +360,7 @@ function draw(gl, baseShaderInfo, buffers) {
 	connectPositionAttribute(gl, baseShaderInfo, buffers.coordsBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.coordsBuffers.color);
 
-	let cameraMatrixes = initCamera(gl);
+	let cameraMatrixes = initCamera(gl, cameraPosition);
 
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, cameraMatrixes.viewMatrix.elements);
 	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
