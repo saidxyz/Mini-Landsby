@@ -7,7 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let cameraPosition = {x:0,y:500,z:500}
+	let cameraPosition = {x:0,y:50,z:500}
 	let windmillAngel = 0;
 	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
@@ -269,7 +269,7 @@ function initCylinderBuffers(gl) {
 	if (stepGrader <= 2)
 		stepGrader = 3;
 	let step = (Math.PI / 180) * stepGrader;
-	let r = 0.8, g = 0.50, b = 0.3, a = 1.0;
+	let r = 0.7, g = 0.7, b = 0.7, a = 1.0;
 	let positionsArray = [];
 	let colorsArray = [];
 
@@ -562,19 +562,28 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
 
 
-	// Lag viewmodel-matrisa:
+	// Lag viewmodel-matrisa-propeller:
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.translate(0,25, 0);
+	modelMatrix.translate(10,25, 10);
 	modelMatrix.rotate(angle,0,0,1);
 	drawPropeller(buffers, modelMatrix, cameraPosition);
 
 
-
+	// Lag viewmodel-matrisa-cylinder:
 	modelMatrix.setIdentity();
-	modelMatrix.translate(0,20, 0);
-	modelMatrix.rotate(0,0,0,1);
+	modelMatrix.translate(10,25, 9);
+	modelMatrix.rotate(90,1,0,0);
 	drawCylinder(buffers, modelMatrix, cameraPosition);
+
+
+	// Lag viewmodel-matrisa-cylinder:
+	modelMatrix.setIdentity();
+	modelMatrix.translate(10,11, 7.5);
+	modelMatrix.rotate(0,1,0,0);
+	modelMatrix.scale(1,15,1);
+	drawCylinder(buffers, modelMatrix, cameraPosition);
+
 
 
 }
