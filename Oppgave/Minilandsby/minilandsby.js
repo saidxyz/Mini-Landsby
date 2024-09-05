@@ -295,7 +295,7 @@ function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
  * Kalles fra draw()
  */
 function clearCanvas(gl) {
-	gl.clearColor(0.99, 0.99, 0.99, 1);  // Clear screen farge.
+	gl.clearColor(0, 0, 1, 1);  // Clear screen farge.
 	gl.clearDepth(1.0);
 	gl.enable(gl.DEPTH_TEST);           // Enable "depth testing".
 	gl.depthFunc(gl.LEQUAL);            // Nære objekter dekker fjerne objekter.
@@ -334,5 +334,4 @@ function draw(gl, baseShaderInfo, buffers) {
 	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
-
 }
