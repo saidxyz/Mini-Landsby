@@ -13,12 +13,54 @@ export function main() {
 	let renderInfo = {
 		gl: webGLCanvas.gl,
 		baseShaderInfo: initBaseShaders(webGLCanvas.gl),
-		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
-		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),    //Denne funksjonen må du lage selv.
+		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),
+		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
+		coneBuffers: initCone(webGLCanvas.gl),
 	};
 	draw(gl, baseShaderInfo, renderInfo);
+}
+function initCone(gl) {
+	let positions = [];
+	let colors = [];
+
+	let sectors = 12;
+	let stepGrader = 360 / sectors;
+	let step = (Math.PI / 180) * stepGrader;
+	let r = 1, g = 0, b = 0, a = 1; // Fargeverdier.
+
+	// Startpunkt (toppen av kjegla):
+	let x = 0, y = 2, z = 0;
+	positions = positions.concat(x, y, z);
+	colors = colors.concat(r, g, b, a);
+
+	let phi = 0.0;
+	for (let sector = 1; sector <= sectors + 1; sector++) {
+		x = Math.cos(phi);
+		y = 0;
+		z = Math.sin(phi);
+
+		positions = positions.concat(x, y, z);
+		g += 0.1; // Endrer litt på fargen for hver verteks.
+		colors = colors.concat(r, g, b, a);
+
+		phi += step;
+	}
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length / 3,
+	};
 }
 
 function initBaseShaders(gl) {
