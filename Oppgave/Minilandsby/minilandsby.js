@@ -49,7 +49,7 @@ function initBaseShaders(gl) {
  */
 // Example of a slight camera position adjustment
 function initCamera(gl) {
-	let eyeX = 0, eyeY = 20, eyeZ = 20; // Move the camera further back to see more
+	let eyeX = 50, eyeY = -500, eyeZ = 500; // Move the camera further back to see more
 	let lookX = 0, lookY = 0, lookZ = 0;
 
 	let upX = 0.0, upY = 1, upZ = 0;
@@ -227,10 +227,10 @@ function initGrassBuffers(gl) {
 
 	// Positions for 6 points (each pair forms a line)
 	const positions = new Float32Array([
+		extent, extent, -1,
+		-extent, extent, -1,
 		extent, -extent, -1,
 		-extent, -extent, -1,
-		-extent, extent, -1,
-		extent, extent, -1,
 	]);
 
 	// Colors corresponding to each point
@@ -280,8 +280,8 @@ function initCoordsBuffers(gl) {
 	const colors = new Float32Array([
 		1, 0, 0, 1,  // Red
 		1, 0, 0, 1,  // Red
-		0, 1, 0, 1,  // Green
-		0, 1, 0, 1,  // Green
+		1, 0, 1, 1,  // Purple
+		1, 0, 1, 1,  // Purple
 		0, 0, 1, 1,  // Blue
 		0, 0, 1, 1   // Blue
 	]);
@@ -353,7 +353,7 @@ function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
  * Kalles fra draw()
  */
 function clearCanvas(gl) {
-	gl.clearColor(0.99, 0.99, 0.99, 1);  // Clear screen farge.
+	gl.clearColor(0, 0, 1, 1);  // Clear screen farge.
 	gl.clearDepth(1.0);
 	gl.enable(gl.DEPTH_TEST);           // Enable "depth testing".
 	gl.depthFunc(gl.LEQUAL);            // Nære objekter dekker fjerne objekter.
@@ -384,15 +384,12 @@ function draw(gl, baseShaderInfo, buffers) {
 	connectPositionAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.color);
 
-	let modelMatrix = new Matrix4();
-	modelMatrix.setIdentity();
-
-
-
-	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
-
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
-
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, buffers.cylinderBuffers.vertexCount);
+
+	// Draw the grass/ground
+
+	connectPositionAttribute(gl, baseShaderInfo, buffers.grassBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
+
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
 }
