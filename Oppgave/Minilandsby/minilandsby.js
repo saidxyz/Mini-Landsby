@@ -7,7 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let cameraPosition = {x:0,y:-500,z:500}
+	let cameraPosition = {x:0,y:500,z:-500}
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
@@ -21,7 +21,6 @@ export function main() {
 	};
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition);
 	document.onwheel = (e) => {
-		console.log("yep" + e.deltaY)
 		if(e.deltaY > 0 ){
 			cameraPosition.x = cameraPosition.x * 0.9
 			cameraPosition.y = cameraPosition.y * 0.9
@@ -33,9 +32,22 @@ export function main() {
 			cameraPosition.z = cameraPosition.z * 1.1
 		}
 		draw(gl, baseShaderInfo, renderInfo, cameraPosition);
-		console.log(cameraPosition)
 	}
-	//document.onkeydown()
+	document.onkeydown = (e) => {
+		if(e.code === "ArrowLeft"){
+			let radius = (cameraPosition.x**2 + cameraPosition.z**2)**(1/2)
+			let angle = Math.atan2(cameraPosition.z, cameraPosition.x);
+			cameraPosition.x = Math.cos(angle - Math.PI/6) * radius
+			cameraPosition.z = Math.sin(angle - Math.PI/6) * radius
+		}
+		if(e.code === "ArrowRight"){
+			let radius = (cameraPosition.x**2 + cameraPosition.z**2)**(1/2)
+			let angle = Math.atan2(cameraPosition.z, cameraPosition.x);
+			cameraPosition.x = Math.cos(angle + Math.PI/6) * radius
+			cameraPosition.z = Math.sin(angle + Math.PI/6) * radius
+		}
+		draw(gl, baseShaderInfo, renderInfo, cameraPosition);
+	}
 }
 
 function initBaseShaders(gl) {
@@ -232,10 +244,10 @@ function initGrassBuffers(gl) {
 
 	// Positions for 6 points (each pair forms a line)
 	const positions = new Float32Array([
-		extent, extent, -1,
-		-extent, extent, -1,
-		extent, -extent, -1,
-		-extent, -extent, -1,
+		extent, -1, extent,
+		-extent, -1, extent,
+		extent, -1, -extent,
+		-extent, -1, -extent,
 	]);
 
 	// Colors corresponding to each point
