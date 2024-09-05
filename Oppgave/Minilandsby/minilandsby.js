@@ -11,7 +11,7 @@ export function main() {
 	let windmillAngel = 0;
 	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
-		//draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	},50)
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
@@ -572,8 +572,8 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 
 
 	modelMatrix.setIdentity();
-	modelMatrix.translate(0,25, 0);
-	modelMatrix.rotate(angle,0,0,1);
+	modelMatrix.translate(0,20, 0);
+	modelMatrix.rotate(0,0,0,1);
 	drawCylinder(buffers, modelMatrix, cameraPosition);
 
 
