@@ -298,15 +298,20 @@ function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
 		// Road 1
-		-25, 0, -1,  // Top left
-		25, 0, -1,   // Top right
-		-25, 0, 1,    // bottom left
-		25, 0, 1,    // Bottom right
+		-25, -1, 0,  // Top left
+		25, -1, 0,   // Top right
+		-25, 1, 0,    // bottom left
+		25, 1, 0,   // Bottom right
 		// Road 2
-		-1, 0, -25,  // Top left
-		1, 0, -25,   // Top right
-		-1, 0, 25,    // bottom left
-		1, 0, 25,    // Bottom right
+		-1, -25,0,  // Top left
+		1, -25,0,   // Top right
+		-1, 25, 0,    // bottom left
+		1, 25, 0,    // Bottom right
+		// Road 3
+		-1, -25,0,  // Top left
+		1, -25,0,   // Top right
+		-1, 25, 0,    // bottom left
+		1, 25, 0,    // Bottom right
 	]);
 
 	// Define colors for the floor vertices
@@ -524,8 +529,8 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	// Lag viewmodel-matrisa:
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.translate(6, 0,-8);
-	modelMatrix.rotate(angle, 0,1,0);
+	modelMatrix.translate(0, 20,0);
+	modelMatrix.rotate(angle, 0,0,1);
 
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
 
