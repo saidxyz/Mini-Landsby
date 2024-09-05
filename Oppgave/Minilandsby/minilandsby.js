@@ -11,7 +11,7 @@ export function main() {
 	let windmillAngel = 0;
 	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
-		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+		//draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	},50)
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
@@ -44,7 +44,7 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAnge
 			cameraPosition.y = cameraPosition.y * 1.1
 			cameraPosition.z = cameraPosition.z * 1.1
 		}
-		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+		// draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	}
 	document.onkeydown = (e) => {
 		if(e.code === "ArrowLeft"){
@@ -59,7 +59,7 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAnge
 			cameraPosition.x = Math.cos(angle + Math.PI/12) * radius
 			cameraPosition.z = Math.sin(angle + Math.PI/12) * radius
 		}
-		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+		// draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	}
 }
 
@@ -526,6 +526,8 @@ function clearCanvas(gl) {
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
+
+
 function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	clearCanvas(gl);
 
@@ -547,13 +549,11 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
-	// Draw sylinder for windmill
+
 	connectPositionAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.color);
 
-
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.cylinderBuffers.vertexCount);  // Tegner sylinderen
-
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.cylinderBuffers.vertexCount);
 	// Draw the road
 	connectPositionAttribute(gl, baseShaderInfo, buffers.roadBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.roadBuffers.color);
@@ -561,24 +561,30 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
 
-	// Draw the windmill propellers
-	connectPositionAttribute(gl, baseShaderInfo, buffers.propellerBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.propellerBuffers.color);
 
 	// Lag viewmodel-matrisa:
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.translate(0, 25,0);
-	modelMatrix.rotate(angle, 0,0,1);
+	drawPropeller(buffers, modelMatrix, cameraPosition);
 
+
+}
+function drawPropeller(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.color);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
 
-	// Send matrisene til shaderen:
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
 
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
-	gl.drawArrays(gl.TRIANGLE_STRIP, 8, 4);
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, 4);
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 4, 4);
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 8, 4);
 
 }
