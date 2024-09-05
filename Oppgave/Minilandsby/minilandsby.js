@@ -565,7 +565,16 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	// Lag viewmodel-matrisa:
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
+	modelMatrix.translate(0,25, 0);
+	modelMatrix.rotate(angle,0,0,1);
 	drawPropeller(buffers, modelMatrix, cameraPosition);
+
+
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0,25, 0);
+	modelMatrix.rotate(angle,0,0,1);
+	drawCylinder(buffers, modelMatrix, cameraPosition);
 
 
 }
@@ -586,5 +595,27 @@ function drawPropeller(renderInfo, modelMatrix, cameraPosition) {
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, 4);
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 4, 4);
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 8, 4);
+
+}
+
+function drawCylinder(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.color);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw sylinder for windmill
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.cylinderBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.cylinderBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.cylinderBuffers.vertexCount);  // Tegner sylinderen
 
 }
