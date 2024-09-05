@@ -18,6 +18,7 @@ export function main() {
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 		coneBuffers: initCone(webGLCanvas.gl),
+		floorBuffer: initFloor(webGLCanvas.gl),
 	};
 	draw(gl, baseShaderInfo, renderInfo);
 }
@@ -250,6 +251,60 @@ function initCylinderBuffers(gl) {
 		position: positionBuffer,
 		color: colorBuffer,
 		vertexCount: positions.length / 3,
+	};
+}
+
+function initFloor(gl) {
+	const positions = new Float32Array([
+		//Triangle 1
+		0.6, 0.6, 0,      // X Y Z
+		0.4, -0.6, 0,  // X Y Z
+		0.8, -0.6, 0,   // X Y Z
+		//Triangle 2
+		-0.6, 0.6, 0,      // X Y Z
+		-0.4, -0.6, 0,  // X Y Z
+		-0.8, -0.6, 0,   // X Y Z
+		//Triangle 3
+		0.2, -0.6, 0,   // X Y Z
+		-0.2, -0.6, 0,   // X Y Z
+		0.0, 0.6, 0.,    // X Y Z
+
+	]);
+
+	const colors = new Float32Array([
+		//Triangle 1
+		1.0, 0.2, 0.3, 1.0,      // R G B A
+		0.2, 0.2, 1.0, 1.0,      // R G B A
+		0.8, 0.6, 0, 1.0,      // R G B A
+		//Triangle 2
+		0.1, 0.2, 0.3, 1.0,      // R G B A
+		0.2, 0.6, 0.5, 1.0,      // R G B A
+		0.1, 0.5, 0.1, 1.0,      // R G B A
+		//Triangle 3
+		0.1, 0.3, 0.2, 1.0,      // R G B A
+		0.1, 0.2, 0.4, 1.0,      // R G B A
+		0.1, 0.1, 0.5, 1.0,      // R G B A
+
+	]);
+	const positionBuffer = gl.createBuffer();
+	const colorBuffer = gl.createBuffer();
+	// Kopler til
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	// Fyller
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+	// Kopler fra
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+	// Kopler til
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	// Fyller
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+	// Kopler fra
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	return  {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length/3
 	};
 }
 
