@@ -25,7 +25,7 @@ export function main() {
 		roadBuffers: initRoadBuffers(webGLCanvas.gl),
 		houseBuffers: initHouse(webGLCanvas.gl),
 		coneBuffers: initCone(webGLCanvas.gl),
-		windMillBuffers: initWindMillBuffers(webGLCanvas.gl),
+		propellerBuffers: initPropellerBuffers(webGLCanvas.gl),
 
 	};
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
@@ -294,20 +294,20 @@ function initCylinderBuffers(gl) {
 	};
 }
 
-function initRoadBuffers(gl) {
+function initPropellerBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
-		// Road 1
+		// propeller 1
 		25, -1, 0,  // Top left
 		-1, -1, 0,   // Top right
 		25, 1, 0,    // bottom left
 		-1, 1, 0,   // Bottom right
-		// Road 2
+		// propeller 2
 		-1, -1,0,  // Top left
 		0.5, 0.5, 0,   // Top right
 		-13, 21, 0,    // bottom left
 		-12, 22, 0,    // Bottom right
-		// Road 3
+		// propeller 3
 		-13, -21, 0,  // Top left
 		-12, -22, 0,  // Top right
 		-1, -1, 0,   // Bottom left
@@ -316,20 +316,20 @@ function initRoadBuffers(gl) {
 
 	// Define colors for the floor vertices
 	const colors = new Float32Array([
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,   // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,   // Gray color
 
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,   // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,   // Gray color
 
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,   // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,   // Gray color
 	]);
 
 
@@ -350,37 +350,47 @@ function initRoadBuffers(gl) {
 	};
 }
 
-function initWindMillBuffers(gl, width, length) {
-	const halfWidth = width / 2;
-	const halfLength = length / 2;
-	const sharpEndLength = length / 4;
+function initRoadBuffers(gl) {
+	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
-		-halfWidth, halfLength, 0.0,  // Top-left
-		halfWidth, halfLength, 0.0,  // Top-right
-		-halfWidth, -halfLength, 0.0, // Bottom-left
-		halfWidth, -halfLength, 0.0  // Bottom-right
-
+		// Road 1
+		-55, 0, -3,  // Top left
+		55, 0, -3,   // Top right
+		-55, 0, 3,    // bottom left
+		55, 0, 3,    // Bottom right
+		// Road 2
+		-3, 0, -55,  // Top left
+		3, 0, -55,   // Top right
+		-3, 0, 55,    // bottom left
+		3, 0, 55,    // Bottom right
 	]);
 
+	// Define colors for the floor vertices
 	const colors = new Float32Array([
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0,  // Gray color
-		0.6, 0.6, 0.6, 1.0   // Gray color
+		0.4, 0.4, 0.4, 1.0,  // Gray color
+		0.4, 0.4, 0.4, 1.0,  // Gray color
+		0.4, 0.4, 0.4, 1.0,  // Gray color
+		0.4, 0.4, 0.4, 1.0,   // Gray color
+		0.4, 0.4, 0.4, 1.0,  // Gray color
+		0.4, 0.4, 0.4, 1.0,  // Gray color
+		0.4, 0.4, 0.4, 1.0,  // Gray color
+		0.4, 0.4, 0.4, 1.0,   // Gray color
 	]);
 
 	const positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 	const colorBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 	return {
 		position: positionBuffer,
 		color: colorBuffer,
-		vertexCount: 4
+		vertexCount: positions.length / 3  // 4 vertices
 	};
 }
 
@@ -533,6 +543,13 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	connectPositionAttribute(gl, baseShaderInfo, buffers.roadBuffers.position);
 	connectColorAttribute(gl, baseShaderInfo, buffers.roadBuffers.color);
 
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(gl, baseShaderInfo, buffers.propellerBuffers.position);
+	connectColorAttribute(gl, baseShaderInfo, buffers.propellerBuffers.color);
+
 	// Lag viewmodel-matrisa:
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
@@ -548,10 +565,4 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
 	gl.drawArrays(gl.TRIANGLE_STRIP, 8, 4);
-
-	// Draw the Windmill
-	connectPositionAttribute(gl, baseShaderInfo, buffers.windMillBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.windMillBuffers.color);
-
-	gl.drawArrays(gl.TRIANGLES, 0, buffers.windMillBuffers.vertexCount);
 }
