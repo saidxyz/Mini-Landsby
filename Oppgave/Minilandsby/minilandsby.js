@@ -613,7 +613,6 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	modelMatrix.scale(2.5,2.5,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
 
-
 	// Hus 2
 	modelMatrix.setIdentity();
 	modelMatrix.translate(20,0, -60);
