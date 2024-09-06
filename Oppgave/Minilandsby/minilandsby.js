@@ -16,10 +16,10 @@ export function main() {
 		cameraPosition = JSON.parse(localStorage.eye);
 	}
 	let windmillAngel = 0;
-	/*setInterval(() => {
+	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
 		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
-	},50)*/
+	},50)
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
@@ -37,41 +37,22 @@ export function main() {
 		triangleRoofBuffers: initTriangleRoofBuffers(webGLCanvas.gl),
 		pyramidRoofBuffers: initPyramidRoofBuffers(webGLCanvas.gl),
 		rectangleBuffers: initRectangle(webGLCanvas.gl, 10, 100),
+		floorRectangleBuffers: initFloorRectangle(webGLCanvas.gl, 5, 5),
 	};
-	// Sett ordnede posisjoner på trekantene:
 	let y=0;
 	let i=0;
-	let color;
 	for (let x= 0 ; x < 100; x++) {
-		for (let z= 0; z < 100; z++) {
-			color = Math.random()*0.2+0.5
+		for (let z = 0; z < 100; z++) {
 			renderInfo.squares[i] = {
-				xpos: (x-50)*5,
+				xpos: (x - 50) * 5,
 				ypos: y,
-				zpos: (z-50)*5,
-				scale: 1.0,
-				color: [
-					color,
-					color,
-					color,
-					1.0
-				]
-
+				zpos: (z - 50) * 5
 			};
 			i++;
 		}
 	}
-	//draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
-	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
-	animate(0, gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
-}
-
-function animate(currentTime, gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel) {
-	window.requestAnimationFrame((currentTime) => {
-		animate(currentTime, gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
-	});
-	//console.log(currentTime);
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
 function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
@@ -419,6 +400,56 @@ function initCube(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
 	};
 }
 
+function initGridBuffers(gl) {
+	const gridSize = 100;  // 100x100 grid
+	const cellSize = 5;    // Size of each small rectangle
+
+	let positions = [];
+	let colors = [];
+
+	// Create grid by iterating over each cell and generating line positions
+	for (let x = 0; x < gridSize; x++) {
+		for (let z = 0; z < gridSize; z++) {
+			// Bottom-left corner
+			let x0 = (x - gridSize / 2) * cellSize;
+			let z0 = (z - gridSize / 2) * cellSize;
+			// Top-right corner
+			let x1 = x0 + cellSize;
+			let z1 = z0 + cellSize;
+
+			// Push positions for the wireframe of the current rectangle
+			positions.push(x0, 0, z0);  // Bottom-left
+			positions.push(x1, 0, z0);  // Bottom-right
+			positions.push(x1, 0, z1);  // Top-right
+			positions.push(x0, 0, z1);  // Top-left
+			positions.push(x0, 0, z0);  // Close loop (back to bottom-left)
+
+			// Generate random green color for this rectangle
+			let greenValue = Math.random() * 0.5 + 0.5; // Random brightness of green
+			for (let i = 0; i < 5; i++) {  // 5 vertices per rectangle
+				colors.push(0.0, greenValue, 0.0, 1.0);  // Random green color
+			}
+		}
+	}
+
+	// Convert to Float32Array for WebGL
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length / 3
+	};
+}
+
+
+
 function initPropellerBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
@@ -570,6 +601,8 @@ function initCylinderBuffers(gl) {
 		vertexCount: positions.length / 3,
 	};
 }
+
+
 
 function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
@@ -735,10 +768,10 @@ function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red
 	let vertexes = []
 
 	vertexes[0] = start.x;
-	vertexes[1] = 1;
+	vertexes[1] = 3;
 	vertexes[2] = start.z;
 	vertexes[3] = end.x;
-	vertexes[4] = 1;
+	vertexes[4] = 3;
 	vertexes[5] = end.z;
 	vertexes[6] = start.x;
 	vertexes[7] = 0;
@@ -752,7 +785,7 @@ function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red
 		vertexes[12+i*6+1] = 0;
 		vertexes[12+i*6+2] = start.z + (end.z-start.z)/3*i;
 		vertexes[12+i*6+3] = start.x + (end.x-start.x)/3*i;
-		vertexes[12+i*6+4] = 1;
+		vertexes[12+i*6+4] = 3;
 		vertexes[12+i*6+5] = start.z + (end.z-start.z)/3*i;
 	}
 
@@ -881,7 +914,7 @@ function drawHouseFour(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.1,0.015,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-7,y:0,z:70})
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-7,y:0,z:70}, 1)
 
 }
 // Blue triangle roof
@@ -927,7 +960,7 @@ function drawHouseThree(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.1,0.015,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:21,y:0,z:-60})
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:21,y:0,z:-60}, 6)
 }
 // Blue cone + windmill
 function drawHouseTwo(renderInfo, modelMatrix, cameraPosition) {
@@ -973,7 +1006,7 @@ function drawHouseTwo(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.3,0.04,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:73,y:0,z:15}, 90)
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:73,y:0,z:15}, 7)
 }
 // white Pyramide roof
 function drawHouseOne(renderInfo, modelMatrix, cameraPosition) {
@@ -995,21 +1028,21 @@ function drawHouseOne(renderInfo, modelMatrix, cameraPosition) {
 	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
 	//Doors for house 1
 	modelMatrix.setIdentity();
-	modelMatrix.translate(75,0, 27.7);
+	modelMatrix.translate(75,0, 28);
 	modelMatrix.scale(0.1,0.05,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 	// window 1 for house 1
 	modelMatrix.setIdentity();
-	modelMatrix.translate(72.5,1.6, 27.71);
+	modelMatrix.translate(73,1.6, 28);
 	modelMatrix.scale(0.1,0.01,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 	// window 2 for house 1
 	modelMatrix.setIdentity();
-	modelMatrix.translate(70,1.6, 27.71);
+	modelMatrix.translate(70,1.6, 28);
 	modelMatrix.scale(0.1,0.01,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-60,y:0,z:-22})
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-60,y:0,z:-22}, 4)
 }
 
 function drawPropellers(renderInfo, modelMatrix, cameraPosition,angle) {
@@ -1320,45 +1353,19 @@ function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
 
 }
-
-function drawGrass(renderInfo, modelMatrix, cameraPosition) {
-
-	for (let i=0; i < renderInfo.squares.length; i++) {
-		let square = renderInfo.squares[i];
-		modelMatrix.setIdentity();
-		modelMatrix.translate(square.xpos, square.ypos, square.zpos);
-		modelMatrix.scale(square.scale, square.scale, square.scale);
-		modelMatrix.rotate(90,1,0,0)
-		drawFloorRectangle(renderInfo, modelMatrix, cameraPosition, square.color);
-	}
+function connectColorUniform(gl, baseShaderInfo, colorRGBA) {
+	//let colorRGBA = [1.0, 0.0, 0.5, 1.0];
+	gl.uniform4f(baseShaderInfo.uniformLocations.vColor, colorRGBA[0],colorRGBA[1],colorRGBA[2],colorRGBA[3]);
 }
 
-function drawFloorRectangle(renderInfo, modelMatrix, cameraPosition, color) {
-
-	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
-
-	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
-	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
-
-	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
-	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
-
-	// Draw the Cone
-	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.rectangleBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, initFloorRectangle(renderInfo.gl, 1, 1, color).color);
-
-	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
-
-}
-
-function initFloorRectangle(gl, width, length, color = [0.8, 0.8, 0.8, 1.0]) {
+function initFloorRectangle(gl, width, length, color = [0, 1, 0, 1.0]) {
 	const halfWidth = width / 2;
 	const halfLength = length / 2;
 	const positions = new Float32Array([
-		-halfWidth, halfLength, 0.0,  // Top-left
-		halfWidth, halfLength, 0.0,  // Top-right
-		-halfWidth, -halfLength, 0.0, // Bottom-left
-		halfWidth, -halfLength, 0.0  // Bottom-right
+		-halfWidth,0,  halfLength,  // Top-left
+		halfWidth,0,  halfLength,  // Top-right
+		-halfWidth, 0, -halfLength, // Bottom-left
+		halfWidth, 0, -halfLength  // Bottom-right
 	]);
 
 	let colorArray = []
@@ -1383,6 +1390,53 @@ function initFloorRectangle(gl, width, length, color = [0.8, 0.8, 0.8, 1.0]) {
 		color: colorBuffer,
 		vertexCount: positions.length/3
 	};
+}
+
+function drawFloorRectangle(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the Cone
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.floorRectangleBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.floorRectangleBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
+
+}
+
+function drawGrass(renderInfo, modelMatrix, cameraPosition) {
+
+	/* Old
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+
+	// Draw the grass/ground
+
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.grassBuffers.vertexCount);
+	*/
+	for (let i=0; i < renderInfo.squares.length; i++) {
+		let square = renderInfo.squares[i];
+		modelMatrix.setIdentity();
+		modelMatrix.translate(square.xpos, square.ypos, square.zpos);
+		//modelMatrix.scale(square.scale, square.scale, square.scale);
+		//modelMatrix.rotate(90,1,0,0)
+		drawFloorRectangle(renderInfo, modelMatrix, cameraPosition);
+	}
 }
 
 function drawLine(renderInfo, modelMatrix, cameraPosition) {
