@@ -400,6 +400,56 @@ function initCube(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
 	};
 }
 
+function initGridBuffers(gl) {
+	const gridSize = 100;  // 100x100 grid
+	const cellSize = 5;    // Size of each small rectangle
+
+	let positions = [];
+	let colors = [];
+
+	// Create grid by iterating over each cell and generating line positions
+	for (let x = 0; x < gridSize; x++) {
+		for (let z = 0; z < gridSize; z++) {
+			// Bottom-left corner
+			let x0 = (x - gridSize / 2) * cellSize;
+			let z0 = (z - gridSize / 2) * cellSize;
+			// Top-right corner
+			let x1 = x0 + cellSize;
+			let z1 = z0 + cellSize;
+
+			// Push positions for the wireframe of the current rectangle
+			positions.push(x0, 0, z0);  // Bottom-left
+			positions.push(x1, 0, z0);  // Bottom-right
+			positions.push(x1, 0, z1);  // Top-right
+			positions.push(x0, 0, z1);  // Top-left
+			positions.push(x0, 0, z0);  // Close loop (back to bottom-left)
+
+			// Generate random green color for this rectangle
+			let greenValue = Math.random() * 0.5 + 0.5; // Random brightness of green
+			for (let i = 0; i < 5; i++) {  // 5 vertices per rectangle
+				colors.push(0.0, greenValue, 0.0, 1.0);  // Random green color
+			}
+		}
+	}
+
+	// Convert to Float32Array for WebGL
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length / 3
+	};
+}
+
+
+
 function initPropellerBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
@@ -551,6 +601,8 @@ function initCylinderBuffers(gl) {
 		vertexCount: positions.length / 3,
 	};
 }
+
+
 
 function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
