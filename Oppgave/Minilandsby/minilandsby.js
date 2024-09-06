@@ -703,10 +703,10 @@ function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red
 	let vertexes = []
 
 	vertexes[0] = start.x;
-	vertexes[1] = 1;
+	vertexes[1] = 3;
 	vertexes[2] = start.z;
 	vertexes[3] = end.x;
-	vertexes[4] = 1;
+	vertexes[4] = 3;
 	vertexes[5] = end.z;
 	vertexes[6] = start.x;
 	vertexes[7] = 0;
@@ -720,7 +720,7 @@ function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red
 		vertexes[12+i*6+1] = 0;
 		vertexes[12+i*6+2] = start.z + (end.z-start.z)/3*i;
 		vertexes[12+i*6+3] = start.x + (end.x-start.x)/3*i;
-		vertexes[12+i*6+4] = 1;
+		vertexes[12+i*6+4] = 3;
 		vertexes[12+i*6+5] = start.z + (end.z-start.z)/3*i;
 	}
 
