@@ -7,7 +7,14 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let cameraPosition = {x:0,y:500,z:500}
+	let rememberCamera = true;
+	let cameraPosition = {x:0,y:50,z:500}
+	if(rememberCamera){
+		if(typeof localStorage["eye"] === "undefined"){
+			saveCamera(cameraPosition);
+		}
+		cameraPosition = JSON.parse(localStorage.eye);
+	}
 	let windmillAngel = 0;
 	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
@@ -32,7 +39,7 @@ export function main() {
 	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
-function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
+function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel){
 	document.onwheel = (e) => {
 		if(e.deltaY > 0 ){
 			cameraPosition.x = cameraPosition.x * 0.9
@@ -59,8 +66,13 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 			cameraPosition.x = Math.cos(angle + Math.PI/12) * radius
 			cameraPosition.z = Math.sin(angle + Math.PI/12) * radius
 		}
+		saveCamera(cameraPosition)
 		// draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	}
+}
+
+function saveCamera(cameraPosition) {
+	localStorage.eye = JSON.stringify(cameraPosition)
 }
 
 function initBaseShaders(gl) {
@@ -85,10 +97,32 @@ function initBaseShaders(gl) {
 	};
 }
 
-function initCamera(gl, eye = {x:0,y:0,z:0}) {
+function initCamera(gl, eye = {x:0,y:0,z:0}, remember) {
 	let eyeX = eye.x, eyeY = eye.y, eyeZ = eye.z;
+	if (remember){
+		eye = JSON.parse(localStorage.eye)
+		eyeX = eye.x
+		eyeY = eye.y
+		eyeZ = eye.z;
+	}
 	let lookX = 0, lookY = 0, lookZ = 0;
+	/*
+	if (remember){
+		let look = JSON.parse(localStorage.look)
+		lookX = look.x
+		lookY = look.y
+		lookZ = look.z;
+	}
+	 */
 	let upX = 0.0, upY = 1, upZ = 0;
+	/*
+	if (remember){
+		let up = JSON.parse(localStorage.up)
+		upX = up.x
+		upY = up.y
+		upZ = up.z;
+	}
+	 */
 
 	let viewMatrix = new Matrix4();
 	let projectionMatrix = new Matrix4();
