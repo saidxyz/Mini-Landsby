@@ -69,6 +69,12 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAnge
 			cameraPosition.x = Math.cos(angle + Math.PI/12) * radius
 			cameraPosition.z = Math.sin(angle + Math.PI/12) * radius
 		}
+		if(e.code === "ArrowUp"){
+			cameraPosition.y *= 1.1
+		}
+		if(e.code === "ArrowDown"){
+			cameraPosition.y *= 0.9
+		}
 		saveCamera(cameraPosition)
 		// draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	}
@@ -135,7 +141,7 @@ function initCamera(gl, eye = {x:0,y:0,z:0}, remember) {
 	const fieldOfView = 10;
 	const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 	const near = 0.1;
-	const far = 1000.0;
+	const far = 3000.0;
 	projectionMatrix.setPerspective(fieldOfView, aspect, near, far);
 
 	return {
@@ -199,7 +205,7 @@ function initTriangleRoofBuffers(gl, color = {red: 1.0, green: 0.5, blue: 0, alp
 
 	let colors = [];
 	//Samme farge på alle sider:
-	for (let i = 0; i < 36; i++) {
+	for (let i = 0; i < 15; i++) {
 		colors.push(color.red, color.green, color.blue, color.alpha);
 	}
 
@@ -237,7 +243,7 @@ function initPyramidRoofBuffers(gl, color = {red: 1.0, green: 0.5, blue: 0, alph
 
 	let colors = [];
 	//Samme farge på alle sider:
-	for (let i = 0; i < 36; i++) {
+	for (let i = 0; i < 10; i++) {
 		colors.push(color.red, color.green, color.blue, color.alpha);
 	}
 
@@ -537,15 +543,15 @@ function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
 		// Road 1
-		-55, 0, -5,  // Top left
-		55, 0, -5,   // Top right
-		-55, 0, 5,    // bottom left
-		55, 0, 5,    // Bottom right
+		-55, 1, -5,  // Top left
+		55, 1, -5,   // Top right
+		-55, 1, 5,    // bottom left
+		55, 1, 5,    // Bottom right
 		// Road 2
-		-5, 0, -55,  // Top left
-		5, 0, -55,   // Top right
-		-5, 0, 55,    // bottom left
-		5, 0, 55,    // Bottom right
+		-5, 1, -55,  // Top left
+		5, 1, -55,   // Top right
+		-5, 1, 55,    // bottom left
+		5, 1, 55,    // Bottom right
 	]);
 
 	// Define colors for the floor vertices
@@ -702,223 +708,306 @@ function clearCanvas(gl) {
 
 function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	clearCanvas(gl);
-
-	gl.useProgram(baseShaderInfo.program);
-
-	// Draw the coordinate system first
-	connectPositionAttribute(gl, baseShaderInfo, buffers.coordsBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.coordsBuffers.color);
-
-	let cameraMatrixes = initCamera(gl, cameraPosition);
-
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.modelViewMatrix, false, cameraMatrixes.viewMatrix.elements);
-	gl.uniformMatrix4fv(baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
-
-	gl.drawArrays(gl.LINES, 0, buffers.coordsBuffers.vertexCount);
-
-	// Draw the grass/ground
-	connectPositionAttribute(gl, baseShaderInfo, buffers.grassBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.grassBuffers.color);
-
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
-
-
-	// Lag viewmodel-matrisa-propeller:
 	let modelMatrix = new Matrix4();
+
 	//	// road
 	modelMatrix.setIdentity();
 	drawRoad(buffers, modelMatrix, cameraPosition);
+
+	// draw windmil propeller
+	drawPropellers(buffers, modelMatrix, cameraPosition, angle);
+
+	// Hus 1 cone
+	drawHouseOne(buffers, modelMatrix, cameraPosition);
+
+	// house 2
+	drawHouseTwo(buffers, modelMatrix, cameraPosition);
+
+	// house 3
+	drawHouseThree(buffers, modelMatrix, cameraPosition);
+
+	// house 4
+	drawHouseFour(buffers, modelMatrix, cameraPosition);
+
+	// drawing Ground
+	drawGround(buffers, modelMatrix, cameraPosition);
+
+	// drawing coord
+	drawCoord(buffers, modelMatrix, cameraPosition);
+
+
+}
+
+function drawCoord(renderInfo, modelMatrix, cameraPosition) {
+
+	// drawing Lines
+	modelMatrix.setIdentity();
+	drawLine(renderInfo, modelMatrix, cameraPosition);
+}
+
+function drawGround(renderInfo, modelMatrix, cameraPosition) {
+
+	// drawing grass
+	modelMatrix.setIdentity();
+	drawGrass(renderInfo, modelMatrix, cameraPosition);
+}
+// container house
+function drawHouseFour(renderInfo, modelMatrix, cameraPosition) {
+	// house 4 første etasje 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-10,0, 70);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.46, green: 0.14, blue: 0.082, alpha: 1.0});
+	// house 4 første etasje 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(1,0, 70);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.46, green: 0.14, blue: 0.082, alpha: 1.0});
+	// house 4 andre etasje
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-4.5,7, 70);
+	modelMatrix.scale(10,2,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.6, green: 0.55, blue: 0.48, alpha: 1.0});
+	//Doors for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(1,1, 72.8);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	//Doors for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-10,1, 72.8);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 1 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-12,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 2 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-9,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 3 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(3,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 4 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-7,y:0,z:70})
+
+}
+// Blue triangle roof
+function drawHouseThree(renderInfo, modelMatrix, cameraPosition) {
+	// house 3 første etasje
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,0, -15);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.22, green: 0.24, blue: 0.3, alpha: 1.0});
+	// house 3 andre etasje
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,6, -15);
+	modelMatrix.scale(6,2,6);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.56, green: 0.45, blue: 0.4, alpha: 1.0});
+	// house 3  roof
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,10, -15);
+	modelMatrix.scale(6,2,6);
+	drawPyramidRoof(renderInfo, modelMatrix, cameraPosition,{red: 1.0, green: 1, blue: 1, alpha: 1.0});
+	//Doors for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,0, -12);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 1 for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-57,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 2  for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-65,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 3  for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-63,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 4  for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-59,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:21,y:0,z:-60})
+}
+// Blue cone + windmill
+function drawHouseTwo(renderInfo, modelMatrix, cameraPosition) {
+
+	// house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(20,0, -60);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
+	// house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(25,0, -60);
+	modelMatrix.scale(2.5,2.5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.95, green: 0.85, blue: 0.2, alpha: 1.0});
+	// house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(15,0, -60);
+	modelMatrix.scale(2.5,3,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.55, green: 0.85, blue: 0.45, alpha: 1.0});
+	// house 2 roof
+	modelMatrix.setIdentity();
+	modelMatrix.translate(20,7, -60);
+	modelMatrix.scale(5,2,3);
+	drawTriangleRoof(renderInfo, modelMatrix, cameraPosition, {red: 0.3, green: 0.58, blue: 0.85, alpha: 1.0});
+	//Doors for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(20,0, -57.4);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 1 for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(14,1.8, -57.3);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 2  for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(16,1.8, -57.3);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// garage door for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(24.9,0, -57.2);
+	modelMatrix.scale(0.3,0.04,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:73,y:0,z:15}, 90)
+}
+// white Pyramide roof
+function drawHouseOne(renderInfo, modelMatrix, cameraPosition) {
+
+	// Hus 1 cone
+	modelMatrix.setIdentity();
+	modelMatrix.translate(75,5, 25);
+	modelMatrix.scale(5,5,5);
+	drawCone(renderInfo, modelMatrix, cameraPosition);
+	// Hus 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(75,0, 25);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
+	// Hus 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(70,0, 25);
+	modelMatrix.scale(2.5,2.5,2.5);
+	drawCube(renderInfo, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
+	//Doors for house 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(75,0, 27.7);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 1 for house 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(72.5,1.6, 27.71);
+	modelMatrix.scale(0.1,0.01,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+	// window 2 for house 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(70,1.6, 27.71);
+	modelMatrix.scale(0.1,0.01,1);
+	drawRectangle(renderInfo, modelMatrix, cameraPosition);
+
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-60,y:0,z:-22})
+}
+
+function drawPropellers(renderInfo, modelMatrix, cameraPosition,angle) {
 
 	// draw windmil propeller
 	modelMatrix.setIdentity();
 	modelMatrix.translate(85,25, 10);
 	modelMatrix.rotate(angle,0,0,1);
 	modelMatrix.scale(0.8, 0.8 ,0)
-	drawPropeller(buffers, modelMatrix, cameraPosition);
+	drawPropeller(renderInfo, modelMatrix, cameraPosition);
 	// draw windmil cylinder top
 	modelMatrix.setIdentity();
 	modelMatrix.translate(85,25, 8.9);
 	modelMatrix.rotate(90,1,0,0);
-	drawCylinder(buffers, modelMatrix, cameraPosition);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 	// draw windmil cylinder stand
 	modelMatrix.setIdentity();
 	modelMatrix.translate(85,11, 7.5);
 	modelMatrix.rotate(0,1,0,0);
 	modelMatrix.scale(1,15,1);
-	drawCylinder(buffers, modelMatrix, cameraPosition);
-
-	// Hus 1 cone
-	modelMatrix.setIdentity();
-	modelMatrix.translate(75,5, 25);
-	modelMatrix.scale(5,5,5);
-	drawCone(buffers, modelMatrix, cameraPosition);
-	// Hus 1
-	modelMatrix.setIdentity();
-	modelMatrix.translate(75,0, 25);
-	modelMatrix.scale(2.5,5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
-	// Hus 1
-	modelMatrix.setIdentity();
-	modelMatrix.translate(70,0, 25);
-	modelMatrix.scale(2.5,2.5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
-	//Doors for house 1
-	modelMatrix.setIdentity();
-	modelMatrix.translate(75,0, 27.7);
-	modelMatrix.scale(0.1,0.05,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 1 for house 1
-	modelMatrix.setIdentity();
-	modelMatrix.translate(72.5,1.6, 27.71);
-	modelMatrix.scale(0.1,0.01,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 2 for house 1
-	modelMatrix.setIdentity();
-	modelMatrix.translate(70,1.6, 27.71);
-	modelMatrix.scale(0.1,0.01,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-
-
-	// house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(20,0, -60);
-	modelMatrix.scale(2.5,5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
-	// house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(25,0, -60);
-	modelMatrix.scale(2.5,2.5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.85, blue: 0.2, alpha: 1.0});
-	// house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(15,0, -60);
-	modelMatrix.scale(2.5,3,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.55, green: 0.85, blue: 0.45, alpha: 1.0});
-	// house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(20,5, -60);
-	modelMatrix.scale(1.8,2,2.2);
-	modelMatrix.rotate(45,0, 0);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.3, green: 0.58, blue: 0.85, alpha: 1.0});
-	//Doors for house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(20,0, -57.4);
-	modelMatrix.scale(0.1,0.05,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 1 for house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(14,1.8, -57.3);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 2  for house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(16,1.8, -57.3);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// garage door for house 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(24.9,0, -57.2);
-	modelMatrix.scale(0.3,0.04,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-
-	// house 3 første etasje
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-60,0, -15);
-	modelMatrix.scale(2.5,5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.22, green: 0.24, blue: 0.3, alpha: 1.0});
-	// house 3 andre etasje
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-60,6, -15);
-	modelMatrix.scale(6,2,6);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.56, green: 0.45, blue: 0.4, alpha: 1.0});
-	//Doors for house 3
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-60,0, -12);
-	modelMatrix.scale(0.1,0.05,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 1 for house 3
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-57,6, -8.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 2  for house 3
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-65,6, -8.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 3  for house 3
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-63,6, -8.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 4  for house 3
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-59,6, -8.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-
-	// house 4 første etasje 1
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-10,0, 70);
-	modelMatrix.scale(2.5,5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.46, green: 0.14, blue: 0.082, alpha: 1.0});
-	// house 4 første etasje 2
-	modelMatrix.setIdentity();
-	modelMatrix.translate(1,0, 70);
-	modelMatrix.scale(2.5,5,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.46, green: 0.14, blue: 0.082, alpha: 1.0});
-	// house 4 andre etasje
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-4.5,7, 70);
-	modelMatrix.scale(10,2,2.5);
-	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.6, green: 0.55, blue: 0.48, alpha: 1.0});
-	//Doors for house 4
-	modelMatrix.setIdentity();
-	modelMatrix.translate(1,1, 72.8);
-	modelMatrix.scale(0.1,0.05,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	//Doors for house 4
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-10,1, 72.8);
-	modelMatrix.scale(0.1,0.05,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 1 for house 4
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-12,7, 72.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 2 for house 4
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-9,7, 72.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 3 for house 4
-	modelMatrix.setIdentity();
-	modelMatrix.translate(3,7, 72.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-	// window 4 for house 4
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0,7, 72.8);
-	modelMatrix.scale(0.1,0.015,1);
-	drawRectangle(buffers, modelMatrix, cameraPosition);
-
-
-	// Draw the triangle roof
-	modelMatrix.setIdentity();
-	modelMatrix.translate(5,1, 0);
-	modelMatrix.scale(1,1,1);
-	drawTriangleRoof(buffers, modelMatrix, cameraPosition)
-
-	// Draw the pyramid roof
-	modelMatrix.setIdentity();
-	modelMatrix.translate(-5,1, 0);
-	modelMatrix.scale(1,1,1);
-	drawPyramidRoof(buffers, modelMatrix, cameraPosition)
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
 }
 
-function drawTriangleRoof(renderInfo, modelMatrix, cameraPosition) {
+function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:0,y:0,z:0}, gate = "nord") {
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-15 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+	// draw windmil cylinder stand
+	modelMatrix.setIdentity();
+	modelMatrix.translate(15 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(15 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-15 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-15 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(15 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(0.3,3,0.3);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+
+
+
+}
+
+function drawTriangleRoof(renderInfo, modelMatrix, cameraPosition, colors) {
 
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
 
@@ -930,14 +1019,14 @@ function drawTriangleRoof(renderInfo, modelMatrix, cameraPosition) {
 
 	// Draw the windmill propellers
 	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.triangleRoofBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.triangleRoofBuffers.color);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, initTriangleRoofBuffers(renderInfo.gl, colors).color);
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, 11);
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 11, 4);
 
 }
 
-function drawPyramidRoof(renderInfo, modelMatrix, cameraPosition) {
+function drawPyramidRoof(renderInfo, modelMatrix, cameraPosition, colors) {
 
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
 
@@ -949,7 +1038,7 @@ function drawPyramidRoof(renderInfo, modelMatrix, cameraPosition) {
 
 	// Draw the windmill propellers
 	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.pyramidRoofBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.pyramidRoofBuffers.color);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, initPyramidRoofBuffers(renderInfo.gl, colors).color);
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_FAN, 0, 6);
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 6, 4);
@@ -1065,5 +1154,43 @@ function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
 	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.rectangleBuffers.color);
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
+
+}
+
+function drawGrass(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+
+	// Draw the grass/ground
+
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.grassBuffers.vertexCount);
+
+}
+
+function drawLine(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the grass/ground
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.coordsBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.coordsBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.LINES, 0, renderInfo.coordsBuffers.vertexCount);
 
 }
