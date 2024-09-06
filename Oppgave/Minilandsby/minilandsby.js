@@ -7,7 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let cameraPosition = {x:0,y:50,z:500}
+	let cameraPosition = {x:0,y:500,z:500}
 	let windmillAngel = 0;
 	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
@@ -26,13 +26,13 @@ export function main() {
 		coneBuffers: initCone(webGLCanvas.gl),
 		propellerBuffers: initPropellerBuffers(webGLCanvas.gl),
 		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
-
 	};
+
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
-function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel){
+function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 	document.onwheel = (e) => {
 		if(e.deltaY > 0 ){
 			cameraPosition.x = cameraPosition.x * 0.9
@@ -269,7 +269,7 @@ function initCylinderBuffers(gl) {
 	if (stepGrader <= 2)
 		stepGrader = 3;
 	let step = (Math.PI / 180) * stepGrader;
-	let r = 0.7, g = 0.7, b = 0.7, a = 1.0;
+	let r = 0.7, g = 0.7, b = 0.7, a = 1;
 	let positionsArray = [];
 	let colorsArray = [];
 
@@ -363,15 +363,15 @@ function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
 	const positions = new Float32Array([
 		// Road 1
-		-55, 0, -3,  // Top left
-		55, 0, -3,   // Top right
-		-55, 0, 3,    // bottom left
-		55, 0, 3,    // Bottom right
+		-55, 0, -5,  // Top left
+		55, 0, -5,   // Top right
+		-55, 0, 5,    // bottom left
+		55, 0, 5,    // Bottom right
 		// Road 2
-		-3, 0, -55,  // Top left
-		3, 0, -55,   // Top right
-		-3, 0, 55,    // bottom left
-		3, 0, 55,    // Bottom right
+		-5, 0, -55,  // Top left
+		5, 0, -55,   // Top right
+		-5, 0, 55,    // bottom left
+		5, 0, 55,    // Bottom right
 	]);
 
 	// Define colors for the floor vertices
@@ -461,10 +461,10 @@ function initCoordsBuffers(gl) {
 	const colors = new Float32Array([
 		1, 0, 0, 1,  // Red
 		1, 0, 0, 1,  // Red
-		1, 1, 0, 1,  // Yellow
-		1, 1, 0, 1,  // Yellow
 		0, 0, 0, 1,  // Black
-		0, 0, 0, 1   // Black
+		0, 0, 0, 1,  // Black
+		0, 0, 1, 1,  // Blue
+		0, 0, 1, 1   // Blue
 	]);
 
 	const positionBuffer = gl.createBuffer();
@@ -550,40 +550,32 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 
 	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.grassBuffers.vertexCount);
 
-	connectPositionAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.cylinderBuffers.color);
-
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, buffers.cylinderBuffers.vertexCount);
-	// Draw the road
-	connectPositionAttribute(gl, baseShaderInfo, buffers.roadBuffers.position);
-	connectColorAttribute(gl, baseShaderInfo, buffers.roadBuffers.color);
-
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-	gl.drawArrays(gl.TRIANGLE_STRIP, 4, 4);
-
 
 	// Lag viewmodel-matrisa-propeller:
 	let modelMatrix = new Matrix4();
 	modelMatrix.setIdentity();
-	modelMatrix.translate(10,25, 10);
+	modelMatrix.translate(85,25, 10);
 	modelMatrix.rotate(angle,0,0,1);
+	modelMatrix.scale(0.8, 0.8 ,0)
 	drawPropeller(buffers, modelMatrix, cameraPosition);
 
 
-	// Lag viewmodel-matrisa-cylinder:
+	// Lag viewmodel-matrisa-propeller-cylinder:
 	modelMatrix.setIdentity();
-	modelMatrix.translate(10,25, 9);
+	modelMatrix.translate(85,25, 8.9);
 	modelMatrix.rotate(90,1,0,0);
 	drawCylinder(buffers, modelMatrix, cameraPosition);
 
 
 	// Lag viewmodel-matrisa-cylinder:
 	modelMatrix.setIdentity();
-	modelMatrix.translate(10,11, 7.5);
+	modelMatrix.translate(85,11, 7.5);
 	modelMatrix.rotate(0,1,0,0);
 	modelMatrix.scale(1,15,1);
 	drawCylinder(buffers, modelMatrix, cameraPosition);
 
+	modelMatrix.setIdentity();
+	drawRoad(buffers, modelMatrix, cameraPosition);
 
 
 }
@@ -591,15 +583,15 @@ function drawPropeller(renderInfo, modelMatrix, cameraPosition) {
 
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
 
-	// Draw the windmill propellers
-	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.color);
-
 	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
 
 	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
 	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.color);
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, 4);
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 4, 4);
@@ -610,10 +602,6 @@ function drawPropeller(renderInfo, modelMatrix, cameraPosition) {
 function drawCylinder(renderInfo, modelMatrix, cameraPosition) {
 
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
-
-	// Draw the windmill propellers
-	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.propellerBuffers.color);
 
 	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
 	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
@@ -626,5 +614,24 @@ function drawCylinder(renderInfo, modelMatrix, cameraPosition) {
 	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.cylinderBuffers.color);
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.cylinderBuffers.vertexCount);  // Tegner sylinderen
+
+}
+
+function drawRoad(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the road
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.roadBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.roadBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, 4);
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 4, 4);
 
 }
