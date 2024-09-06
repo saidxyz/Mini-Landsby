@@ -698,6 +698,53 @@ function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
 	gl.enableVertexAttribArray(baseShaderInfo.attribLocations.vertexColor);
 }
 
+function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
+
+	let vertexes = []
+	for(let i = 0; i < 4; i++){
+		vertexes[i*3] = start.x + (end.x-start.x)/3*i;
+		vertexes[i*3+1] = 1;
+		vertexes[i*3+2] = start.z + (end.z-start.z)/3*i;
+	}
+	for(let i = 0; i < 4; i++){
+		vertexes[12+i*3] = start.x + (end.x-start.x)/3*i;
+		vertexes[12+i*3+1] = 0;
+		vertexes[12+i*3+2] = start.z + (end.z-start.z)/3*i;
+	}
+	for(let i = 0; i < 4; i++){
+		vertexes[24+i*6] = start.x + (end.x-start.x)/3*i;
+		vertexes[24+i*6+1] = 0;
+		vertexes[24+i*6+2] = start.z + (end.z-start.z)/3*i;
+		vertexes[24+i*6+3] = start.x + (end.x-start.x)/3*i;
+		vertexes[24+i*6+4] = 1;
+		vertexes[24+i*6+5] = start.z + (end.z-start.z)/3*i;
+	}
+
+	const positions = new Float32Array(vertexes);
+
+	let colors = [];
+	//Samme farge på alle sider:
+	for (let i = 0; i < positions.length/3; i++) {
+		colors.push(color.red, color.green, color.blue, color.alpha);
+	}
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	return  {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length/3,
+	};
+}
+
 function clearCanvas(gl) {
 	gl.clearColor(0, 0.8, 1, 0.2);  // Clear screen farge.
 	gl.clearDepth(1.0);
@@ -733,7 +780,7 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	drawGround(buffers, modelMatrix, cameraPosition);
 
 	// drawing coord
-	drawCoord(buffers, modelMatrix, cameraPosition);
+	//drawCoord(buffers, modelMatrix, cameraPosition);
 
 
 }
@@ -959,6 +1006,19 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	modelMatrix.rotate(0,0,1,0);
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:-15, z:-15}, {x:0,z:-15})
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:-15}, {x:15,z:-15})
+
 	// draw windmil cylinder stand
 	modelMatrix.setIdentity();
 	modelMatrix.translate(15 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
@@ -967,16 +1027,52 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
 	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:-15}, {x:15,z:0})
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:0}, {x:15,z:15})
+
+	modelMatrix.setIdentity();
 	modelMatrix.translate(15 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
 	modelMatrix.rotate(0,0,1,0);
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
 	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:15}, {x:0,z:15})
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:15}, {x:-15,z:15})
+
+	modelMatrix.setIdentity();
 	modelMatrix.translate(-15 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
 	modelMatrix.rotate(0,0,1,0);
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:-15, z:15}, {x:-15,z:15})
+
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+	modelMatrix.rotate(0,0,1,0);
+	modelMatrix.scale(1,1,1);
+	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:15}, {x:-15,z:15})
 
 	modelMatrix.setIdentity();
 	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
@@ -1000,10 +1096,29 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
 	modelMatrix.rotate(0,0,1,0);
 	modelMatrix.scale(0.3,3,0.3);
-	drawCylinder(renderInfo, modelMatrix, cameraPosition);
+	drawCylinder(renderInfo, modelMatrix, cameraPosition)
 
+}
 
+function drawLattice(renderInfo, modelMatrix, cameraPosition, start, end, colors = {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0}) {
 
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	let latticeBuffers = initLatticeBuffers(renderInfo.gl, start, end, colors);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, latticeBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, latticeBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 0, 12);
+	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 12, 12);
+	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 24, 24);
 
 }
 
