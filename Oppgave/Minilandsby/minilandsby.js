@@ -16,15 +16,16 @@ export function main() {
 		cameraPosition = JSON.parse(localStorage.eye);
 	}
 	let windmillAngel = 0;
-	setInterval(() => {
+	/*setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
 		draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
-	},50)
+	},50)*/
 	const webGLCanvas = new WebGLCanvas('myCanvas', document.body, 1920, 1080);
 	const gl = webGLCanvas.gl;
 	let baseShaderInfo = initBaseShaders(gl);
 	let renderInfo = {
 		gl: webGLCanvas.gl,
+		squares: [],
 		baseShaderInfo: initBaseShaders(webGLCanvas.gl),
 		coordsBuffers: initCoordsBuffers(webGLCanvas.gl),
 		grassBuffers: initGrassBuffers(webGLCanvas.gl),
@@ -37,9 +38,40 @@ export function main() {
 		pyramidRoofBuffers: initPyramidRoofBuffers(webGLCanvas.gl),
 		rectangleBuffers: initRectangle(webGLCanvas.gl, 10, 100),
 	};
+	// Sett ordnede posisjoner på trekantene:
+	let y=0;
+	let i=0;
+	let color;
+	for (let x= 0 ; x < 100; x++) {
+		for (let z= 0; z < 100; z++) {
+			color = Math.random()*0.2+0.5
+			renderInfo.squares[i] = {
+				xpos: (x-50)*5,
+				ypos: y,
+				zpos: (z-50)*5,
+				scale: 1.0,
+				color: [
+					color,
+					color,
+					color,
+					1.0
+				]
 
-	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+			};
+			i++;
+		}
+	}
+	//draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+	animate(0, gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+}
+
+function animate(currentTime, gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel) {
+	window.requestAnimationFrame((currentTime) => {
+		animate(currentTime, gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
+	});
+	//console.log(currentTime);
+	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
 function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
@@ -1291,6 +1323,18 @@ function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
 
 function drawGrass(renderInfo, modelMatrix, cameraPosition) {
 
+	for (let i=0; i < renderInfo.squares.length; i++) {
+		let square = renderInfo.squares[i];
+		modelMatrix.setIdentity();
+		modelMatrix.translate(square.xpos, square.ypos, square.zpos);
+		modelMatrix.scale(square.scale, square.scale, square.scale);
+		modelMatrix.rotate(90,1,0,0)
+		drawFloorRectangle(renderInfo, modelMatrix, cameraPosition, square.color);
+	}
+}
+
+function drawFloorRectangle(renderInfo, modelMatrix, cameraPosition, color) {
+
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
 
 	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
@@ -1299,14 +1343,46 @@ function drawGrass(renderInfo, modelMatrix, cameraPosition) {
 	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
 	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
 
+	// Draw the Cone
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.rectangleBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, initFloorRectangle(renderInfo.gl, 1, 1, color).color);
 
-	// Draw the grass/ground
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
 
-	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.color);
+}
 
-	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.grassBuffers.vertexCount);
+function initFloorRectangle(gl, width, length, color = [0.8, 0.8, 0.8, 1.0]) {
+	const halfWidth = width / 2;
+	const halfLength = length / 2;
+	const positions = new Float32Array([
+		-halfWidth, halfLength, 0.0,  // Top-left
+		halfWidth, halfLength, 0.0,  // Top-right
+		-halfWidth, -halfLength, 0.0, // Bottom-left
+		halfWidth, -halfLength, 0.0  // Bottom-right
+	]);
 
+	let colorArray = []
+	for(let i = 0; i < positions.length/3; i++){
+		colorArray[i*4] = color[0];
+		colorArray[i*4+1] = color[1];
+		colorArray[i*4+2] = color[2];
+		colorArray[i*4+3] = color[3];
+	}
+	const colors = new Float32Array(colorArray);
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length/3
+	};
 }
 
 function drawLine(renderInfo, modelMatrix, cameraPosition) {
