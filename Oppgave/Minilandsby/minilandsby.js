@@ -33,6 +33,8 @@ export function main() {
 		coneBuffers: initCone(webGLCanvas.gl),
 		propellerBuffers: initPropellerBuffers(webGLCanvas.gl),
 		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
+		triangleRoofBuffers: initTriangleRoofBuffers(webGLCanvas.gl),
+		pyramidRoofBuffers: initPyramidRoofBuffers(webGLCanvas.gl),
 	};
 
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
@@ -138,6 +140,87 @@ function initCamera(gl, eye = {x:0,y:0,z:0}, remember) {
 	return {
 		viewMatrix: viewMatrix,
 		projectionMatrix: projectionMatrix
+	};
+}
+
+function initTriangleRoofBuffers(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
+	const positions = new Float32Array([
+		1, -1, -1,    // X Y Z
+		0, 1, -1,    // X Y Z
+		1, -1, 1,    // X Y Z
+		0, 1, 1,    // X Y Z
+		-1, -1, 1,    // X Y Z
+		0, 1, -1,    // X Y Z
+		-1, -1, -1,    // X Y Z
+		1, -1, -1,    // X Y Z
+		-1, -1, 1,    // X Y Z
+		1, -1, 1,    // X Y Z
+		0, 1, 1,    // X Y Z
+
+		-1, -1, -1,    // X Y Z
+		-1, -1, 1,    // X Y Z
+		1, -1, -1,    // X Y Z
+		1, -1, 1,    // X Y Z
+	]);
+
+	let colors = [];
+	//Samme farge på alle sider:
+	for (let i = 0; i < 36; i++) {
+		colors.push(color.red, color.green, color.blue, color.alpha);
+	}
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	return  {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length/3,
+	};
+}
+
+function initPyramidRoofBuffers(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
+	const positions = new Float32Array([
+		0, 1, 0,    // X Y Z
+		-1, -1, -1,    // X Y Z
+		-1, -1, 1,    // X Y Z
+		1, -1, 1,    // X Y Z
+		1, -1, -1,    // X Y Z
+		-1, -1, -1,    // X Y Z
+
+		-1, -1, -1,    // X Y Z
+		-1, -1, 1,    // X Y Z
+		1, -1, -1,    // X Y Z
+		1, -1, 1,    // X Y Z
+	]);
+
+	let colors = [];
+	//Samme farge på alle sider:
+	for (let i = 0; i < 36; i++) {
+		colors.push(color.red, color.green, color.blue, color.alpha);
+	}
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	return  {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length/3,
 	};
 }
 
@@ -663,7 +746,58 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 	modelMatrix.scale(2.5,3,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.55, green: 0.85, blue: 0.45, alpha: 1.0});
 
+	// Draw the triangle roof
+	modelMatrix.setIdentity();
+	modelMatrix.translate(5,1, 0);
+	modelMatrix.scale(1,1,1);
+	drawTriangleRoof(buffers, modelMatrix, cameraPosition)
+
+	// Draw the pyramid roof
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-5,1, 0);
+	modelMatrix.scale(1,1,1);
+	drawPyramidRoof(buffers, modelMatrix, cameraPosition)
+
 }
+
+function drawTriangleRoof(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.triangleRoofBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.triangleRoofBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, 11);
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 11, 4);
+
+}
+
+function drawPyramidRoof(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the windmill propellers
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.pyramidRoofBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.pyramidRoofBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_FAN, 0, 6);
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 6, 4);
+
+}
+
 function drawPropeller(renderInfo, modelMatrix, cameraPosition) {
 
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
