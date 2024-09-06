@@ -1306,7 +1306,6 @@ function drawGrass(renderInfo, modelMatrix, cameraPosition) {
 	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.grassBuffers.color);
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.grassBuffers.vertexCount);
-
 }
 
 function drawLine(renderInfo, modelMatrix, cameraPosition) {
