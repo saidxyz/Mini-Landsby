@@ -42,7 +42,7 @@ export function main() {
 	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
-function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel){
+function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 	document.onwheel = (e) => {
 		if(e.deltaY > 0 ){
 			cameraPosition.x = cameraPosition.x * 0.9
@@ -701,27 +701,30 @@ function connectColorAttribute(gl, baseShaderInfo, colorBuffer) {
 function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
 
 	let vertexes = []
+
+	vertexes[0] = start.x;
+	vertexes[1] = 1;
+	vertexes[2] = start.z;
+	vertexes[3] = end.x;
+	vertexes[4] = 1;
+	vertexes[5] = end.z;
+	vertexes[6] = start.x;
+	vertexes[7] = 0;
+	vertexes[8] = start.z;
+	vertexes[9] = end.x;
+	vertexes[10] = 0;
+	vertexes[11] = end.z;
+
 	for(let i = 0; i < 4; i++){
-		vertexes[i*3] = start.x + (end.x-start.x)/3*i;
-		vertexes[i*3+1] = 1;
-		vertexes[i*3+2] = start.z + (end.z-start.z)/3*i;
-	}
-	for(let i = 0; i < 4; i++){
-		vertexes[12+i*3] = start.x + (end.x-start.x)/3*i;
-		vertexes[12+i*3+1] = 0;
-		vertexes[12+i*3+2] = start.z + (end.z-start.z)/3*i;
-	}
-	for(let i = 0; i < 4; i++){
-		vertexes[24+i*6] = start.x + (end.x-start.x)/3*i;
-		vertexes[24+i*6+1] = 0;
-		vertexes[24+i*6+2] = start.z + (end.z-start.z)/3*i;
-		vertexes[24+i*6+3] = start.x + (end.x-start.x)/3*i;
-		vertexes[24+i*6+4] = 1;
-		vertexes[24+i*6+5] = start.z + (end.z-start.z)/3*i;
+		vertexes[12+i*6] = start.x + (end.x-start.x)/3*i;
+		vertexes[12+i*6+1] = 0;
+		vertexes[12+i*6+2] = start.z + (end.z-start.z)/3*i;
+		vertexes[12+i*6+3] = start.x + (end.x-start.x)/3*i;
+		vertexes[12+i*6+4] = 1;
+		vertexes[12+i*6+5] = start.z + (end.z-start.z)/3*i;
 	}
 
 	const positions = new Float32Array(vertexes);
-
 	let colors = [];
 	//Samme farge på alle sider:
 	for (let i = 0; i < positions.length/3; i++) {
@@ -999,7 +1002,7 @@ function drawPropellers(renderInfo, modelMatrix, cameraPosition,angle) {
 
 }
 
-function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:0,y:0,z:0}, gate = "nord") {
+function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:0,y:0,z:0}, gate = 0) {
 
 	modelMatrix.setIdentity();
 	modelMatrix.translate(-15 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
@@ -1007,17 +1010,21 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:-15, z:-15}, {x:0,z:-15})
+	if(gate != 0) {
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x, 0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0, 0, 1, 0);
+		modelMatrix.scale(1, 1, 1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x: -15, z: -15}, {x: 0, z: -15})
+	}
 
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:-15}, {x:15,z:-15})
+	if(gate != 1){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:-15}, {x:15,z:-15})
+	}
 
 	// draw windmil cylinder stand
 	modelMatrix.setIdentity();
@@ -1026,17 +1033,21 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:-15}, {x:15,z:0})
+	if(gate != 2){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:-15}, {x:15,z:0})
+	}
 
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:0}, {x:15,z:15})
+	if(gate != 3){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:0}, {x:15,z:15})
+	}
 
 	modelMatrix.setIdentity();
 	modelMatrix.translate(15 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
@@ -1044,17 +1055,20 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:15}, {x:0,z:15})
-
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:15}, {x:-15,z:15})
+	if(gate != 4){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:15, z:15}, {x:0,z:15})
+	}
+	if(gate != 5){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:15}, {x:-15,z:15})
+	}
 
 	modelMatrix.setIdentity();
 	modelMatrix.translate(-15 + globalTranslate.x,0 + globalTranslate.y, 15 + globalTranslate.z);
@@ -1062,17 +1076,20 @@ function drawFence(renderInfo, modelMatrix, cameraPosition,globalTranslate = {x:
 	modelMatrix.scale(0.3,3,0.3);
 	drawCylinder(renderInfo, modelMatrix, cameraPosition);
 
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:-15, z:15}, {x:-15,z:15})
-
-	modelMatrix.setIdentity();
-	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
-	modelMatrix.rotate(0,0,1,0);
-	modelMatrix.scale(1,1,1);
-	drawLattice(renderInfo, modelMatrix, cameraPosition, {x:0, z:15}, {x:-15,z:15})
+	if(gate != 6){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:-15, z:15}, {x:-15,z:0})
+	}
+	if(gate != 7){
+		modelMatrix.setIdentity();
+		modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, 0 + globalTranslate.z);
+		modelMatrix.rotate(0,0,1,0);
+		modelMatrix.scale(1,1,1);
+		drawLattice(renderInfo, modelMatrix, cameraPosition, {x:-15, z:0}, {x:-15,z:-15})
+	}
 
 	modelMatrix.setIdentity();
 	modelMatrix.translate(0 + globalTranslate.x,0 + globalTranslate.y, -15 + globalTranslate.z);
@@ -1116,9 +1133,9 @@ function drawLattice(renderInfo, modelMatrix, cameraPosition, start, end, colors
 	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, latticeBuffers.position);
 	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, latticeBuffers.color);
 
-	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 0, 12);
-	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 12, 12);
-	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 24, 24);
+	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 0, 2);
+	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 2, 2);
+	renderInfo.gl.drawArrays(renderInfo.gl.LINE_STRIP, 4, 8);
 
 }
 
