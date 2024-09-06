@@ -1047,6 +1047,7 @@ function drawCube(renderInfo, modelMatrix, cameraPosition, color) {
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLES, 0, renderInfo.cubeBuffers.vertexCount);
 
+
 }
 
 function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
