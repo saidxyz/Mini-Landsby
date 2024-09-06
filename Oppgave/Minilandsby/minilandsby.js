@@ -849,7 +849,7 @@ function drawHouseFour(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.1,0.015,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-7,y:0,z:70})
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-7,y:0,z:70}, 1)
 
 }
 // Blue triangle roof
@@ -895,7 +895,7 @@ function drawHouseThree(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.1,0.015,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:21,y:0,z:-60})
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:21,y:0,z:-60}, 6)
 }
 // Blue cone + windmill
 function drawHouseTwo(renderInfo, modelMatrix, cameraPosition) {
@@ -941,7 +941,7 @@ function drawHouseTwo(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.3,0.04,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:73,y:0,z:15}, 90)
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:73,y:0,z:15}, 7)
 }
 // white Pyramide roof
 function drawHouseOne(renderInfo, modelMatrix, cameraPosition) {
@@ -977,7 +977,7 @@ function drawHouseOne(renderInfo, modelMatrix, cameraPosition) {
 	modelMatrix.scale(0.1,0.01,1);
 	drawRectangle(renderInfo, modelMatrix, cameraPosition);
 
-	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-60,y:0,z:-22})
+	drawFence(renderInfo, modelMatrix, cameraPosition,{x:-60,y:0,z:-22}, 4)
 }
 
 function drawPropellers(renderInfo, modelMatrix, cameraPosition,angle) {
