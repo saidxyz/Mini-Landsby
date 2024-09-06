@@ -7,7 +7,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
  */
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let rememberCamera = true;
+	let rememberCamera = false;
 	let cameraPosition = {x:0,y:50,z:500}
 	if(rememberCamera){
 		if(typeof localStorage["eye"] === "undefined"){
@@ -15,6 +15,7 @@ export function main() {
 		}
 		cameraPosition = JSON.parse(localStorage.eye);
 	}
+
 	let windmillAngel = 0;
 	setInterval(() => {
 		windmillAngel+=document.getElementById("wind").value*Math.PI*2/180;
@@ -33,6 +34,7 @@ export function main() {
 		coneBuffers: initCone(webGLCanvas.gl),
 		propellerBuffers: initPropellerBuffers(webGLCanvas.gl),
 		cylinderBuffers: initCylinderBuffers(webGLCanvas.gl),
+		rectangleBuffers: initRectangle(webGLCanvas.gl, 10, 100),
 	};
 
 	draw(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
@@ -141,6 +143,39 @@ function initCamera(gl, eye = {x:0,y:0,z:0}, remember) {
 	};
 }
 
+function initRectangle(gl, width, length) {
+	const halfWidth = width / 2;
+	const halfLength = length / 2;
+	const positions = new Float32Array([
+		-halfWidth, halfLength, 0.0,  // Top-left
+		halfWidth, halfLength, 0.0,  // Top-right
+		-halfWidth, -halfLength, 0.0, // Bottom-left
+		halfWidth, -halfLength, 0.0  // Bottom-right
+	]);
+
+	const colors = new Float32Array([
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0,  // Gray color
+		0.8, 0.8, 0.8, 1.0   // Gray color
+	]);
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: 4
+	};
+}
+
+
 function initCone(gl) {
 	let positions = [];
 	let colors = [];
@@ -148,7 +183,7 @@ function initCone(gl) {
 	let sectors = 12;
 	let stepGrader = 360 / sectors;
 	let step = (Math.PI / 180) * stepGrader;
-	let r = 1, g = 0, b = 0, a = 1; // Fargeverdier.
+	let r =0 , g = 0, b = 1, a = 1; // Fargeverdier.
 
 	// Startpunkt (toppen av kjegla):
 	let x = 0, y = 2, z = 0;
@@ -182,7 +217,6 @@ function initCone(gl) {
 		vertexCount: positions.length / 3,
 	};
 }
-
 
 function initCube(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
 	let positions = [
@@ -609,59 +643,184 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 
 	// Lag viewmodel-matrisa-propeller:
 	let modelMatrix = new Matrix4();
-//	// road
+	//	// road
 	modelMatrix.setIdentity();
 	drawRoad(buffers, modelMatrix, cameraPosition);
 
-	// Windmill
+	// draw windmil propeller
 	modelMatrix.setIdentity();
 	modelMatrix.translate(85,25, 10);
 	modelMatrix.rotate(angle,0,0,1);
 	modelMatrix.scale(0.8, 0.8 ,0)
 	drawPropeller(buffers, modelMatrix, cameraPosition);
-
+	// draw windmil cylinder top
 	modelMatrix.setIdentity();
 	modelMatrix.translate(85,25, 8.9);
 	modelMatrix.rotate(90,1,0,0);
 	drawCylinder(buffers, modelMatrix, cameraPosition);
-
+	// draw windmil cylinder stand
 	modelMatrix.setIdentity();
 	modelMatrix.translate(85,11, 7.5);
 	modelMatrix.rotate(0,1,0,0);
 	modelMatrix.scale(1,15,1);
 	drawCylinder(buffers, modelMatrix, cameraPosition);
 
-	// Hus 1
+	// Hus 1 cone
 	modelMatrix.setIdentity();
 	modelMatrix.translate(75,5, 25);
 	modelMatrix.scale(5,5,5);
 	drawCone(buffers, modelMatrix, cameraPosition);
-
+	// Hus 1
 	modelMatrix.setIdentity();
 	modelMatrix.translate(75,0, 25);
 	modelMatrix.scale(2.5,5,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
-
+	// Hus 1
 	modelMatrix.setIdentity();
 	modelMatrix.translate(70,0, 25);
 	modelMatrix.scale(2.5,2.5,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
+	//Doors for house 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(75,0, 27.7);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 1 for house 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(72.5,1.6, 27.71);
+	modelMatrix.scale(0.1,0.01,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 2 for house 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(70,1.6, 27.71);
+	modelMatrix.scale(0.1,0.01,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
 
-	// Hus 2
+
+	// house 2
 	modelMatrix.setIdentity();
 	modelMatrix.translate(20,0, -60);
 	modelMatrix.scale(2.5,5,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.67, blue: 0.52, alpha: 1.0});
-
+	// house 2
 	modelMatrix.setIdentity();
 	modelMatrix.translate(25,0, -60);
 	modelMatrix.scale(2.5,2.5,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.95, green: 0.85, blue: 0.2, alpha: 1.0});
-
+	// house 2
 	modelMatrix.setIdentity();
 	modelMatrix.translate(15,0, -60);
 	modelMatrix.scale(2.5,3,2.5);
 	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.55, green: 0.85, blue: 0.45, alpha: 1.0});
+	// house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(20,5, -60);
+	modelMatrix.scale(1.8,2,2.2);
+	modelMatrix.rotate(45,0, 0);
+	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.3, green: 0.58, blue: 0.85, alpha: 1.0});
+	//Doors for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(20,0, -57.4);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 1 for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(14,1.8, -57.3);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 2  for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(16,1.8, -57.3);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// garage door for house 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(24.9,0, -57.2);
+	modelMatrix.scale(0.3,0.04,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+
+	// house 3 første etasje
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,0, -15);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.22, green: 0.24, blue: 0.3, alpha: 1.0});
+	// house 3 andre etasje
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,6, -15);
+	modelMatrix.scale(6,2,6);
+	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.56, green: 0.45, blue: 0.4, alpha: 1.0});
+	//Doors for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-60,0, -12);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 1 for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-57,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 2  for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-65,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 3  for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-63,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 4  for house 3
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-59,6, -8.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+
+	// house 4 første etasje 1
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-10,0, 70);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.46, green: 0.14, blue: 0.082, alpha: 1.0});
+	// house 4 første etasje 2
+	modelMatrix.setIdentity();
+	modelMatrix.translate(1,0, 70);
+	modelMatrix.scale(2.5,5,2.5);
+	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.46, green: 0.14, blue: 0.082, alpha: 1.0});
+	// house 4 andre etasje
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-4.5,7, 70);
+	modelMatrix.scale(10,2,2.5);
+	drawCube(buffers, modelMatrix, cameraPosition, {red: 0.6, green: 0.55, blue: 0.48, alpha: 1.0});
+	//Doors for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(1,1, 72.8);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	//Doors for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-10,1, 72.8);
+	modelMatrix.scale(0.1,0.05,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 1 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-12,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 2 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(-9,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 3 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(3,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+	// window 4 for house 4
+	modelMatrix.setIdentity();
+	modelMatrix.translate(0,7, 72.8);
+	modelMatrix.scale(0.1,0.015,1);
+	drawRectangle(buffers, modelMatrix, cameraPosition);
+
 
 }
 function drawPropeller(renderInfo, modelMatrix, cameraPosition) {
@@ -757,3 +916,20 @@ function drawCube(renderInfo, modelMatrix, cameraPosition, color) {
 
 }
 
+function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
+
+	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
+
+	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
+	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
+
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
+	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
+
+	// Draw the Cone
+	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.rectangleBuffers.position);
+	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.rectangleBuffers.color);
+
+	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
+
+}
