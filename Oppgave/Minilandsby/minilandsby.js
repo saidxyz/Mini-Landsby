@@ -195,7 +195,6 @@ function initRectangle(gl, width, length) {
 	};
 }
 
-
 function initTriangleRoofBuffers(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
 	const positions = new Float32Array([
 		1, -1, -1,    // X Y Z
@@ -551,8 +550,6 @@ function initCylinderBuffers(gl) {
 		vertexCount: positions.length / 3,
 	};
 }
-
-
 
 function initRoadBuffers(gl) {
 	// Define positions for the floor (two triangles forming a rectangle)
@@ -1302,10 +1299,6 @@ function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
 
 	renderInfo.gl.drawArrays(renderInfo.gl.TRIANGLE_STRIP, 0, renderInfo.rectangleBuffers.vertexCount);
 
-}
-function connectColorUniform(gl, baseShaderInfo, colorRGBA) {
-	//let colorRGBA = [1.0, 0.0, 0.5, 1.0];
-	gl.uniform4f(baseShaderInfo.uniformLocations.vColor, colorRGBA[0],colorRGBA[1],colorRGBA[2],colorRGBA[3]);
 }
 
 function initFloorRectangle(gl, width, length, color = [0, 1, 0, 1.0]) {
