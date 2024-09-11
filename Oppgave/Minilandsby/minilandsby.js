@@ -3,7 +3,7 @@ import {WebGLShader} from '../../base/helpers/WebGLShader.js';
 
 export function main() {
 	// Oppretter et webGLCanvas for WebGL-tegning:
-	let rememberCamera = true;
+	let rememberCamera = false;
 	let cameraPosition = {x:0,y:50,z:500}
 	if(rememberCamera){
 		if(typeof localStorage["eye"] === "undefined"){
@@ -51,6 +51,8 @@ export function main() {
 	initEvents(gl, baseShaderInfo, renderInfo, cameraPosition, windmillAngel);
 }
 
+
+
 function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 	document.onwheel = (e) => {
 		if(e.deltaY > 0 ){
@@ -92,6 +94,8 @@ function initEvents(gl, baseShaderInfo, renderInfo, cameraPosition){
 function saveCamera(cameraPosition) {
 	localStorage.eye = JSON.stringify(cameraPosition)
 }
+
+
 
 function initBaseShaders(gl) {
 	// Leser shaderkode fra HTML-fila: Standard/enkel shader (posisjon og farge):
@@ -190,7 +194,6 @@ function initRectangle(gl, width, length) {
 		vertexCount: 4
 	};
 }
-
 
 function initTriangleRoofBuffers(gl, color = {red: 1.0, green: 0.5, blue: 0, alpha: 1.0}) {
 	const positions = new Float32Array([
@@ -757,6 +760,41 @@ function initLatticeBuffers(gl, start = {x:0,z:0}, end = {x:3,z:0}, color = {red
 	};
 }
 
+function initFloorRectangle(gl, width, length, color = [0, 1, 0, 1.0]) {
+	const halfWidth = width / 2;
+	const halfLength = length / 2;
+	const positions = new Float32Array([
+		-halfWidth,0,  halfLength,  // Top-left
+		halfWidth,0,  halfLength,  // Top-right
+		-halfWidth, 0, -halfLength, // Bottom-left
+		halfWidth, 0, -halfLength  // Bottom-right
+	]);
+
+	let colorArray = []
+	for(let i = 0; i < positions.length/3; i++){
+		colorArray[i*4] = color[0];
+		colorArray[i*4+1] = color[1];
+		colorArray[i*4+2] = color[2];
+		colorArray[i*4+3] = color[3];
+	}
+	const colors = new Float32Array(colorArray);
+
+	const positionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+	const colorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+	return {
+		position: positionBuffer,
+		color: colorBuffer,
+		vertexCount: positions.length/3
+	};
+}
+
+
 function clearCanvas(gl) {
 	gl.clearColor(0, 0.8, 1, 0.2);  // Clear screen farge.
 	gl.clearDepth(1.0);
@@ -796,6 +834,8 @@ function draw(gl, baseShaderInfo, buffers, cameraPosition, angle) {
 
 
 }
+
+
 
 function drawGround(renderInfo, modelMatrix, cameraPosition) {
 
@@ -1291,40 +1331,6 @@ function drawRectangle(renderInfo, modelMatrix, cameraPosition) {
 
 }
 
-function initFloorRectangle(gl, width, length, color = [0, 1, 0, 1.0]) {
-	const halfWidth = width / 2;
-	const halfLength = length / 2;
-	const positions = new Float32Array([
-		-halfWidth,0,  halfLength,  // Top-left
-		halfWidth,0,  halfLength,  // Top-right
-		-halfWidth, 0, -halfLength, // Bottom-left
-		halfWidth, 0, -halfLength  // Bottom-right
-	]);
-
-	let colorArray = []
-	for(let i = 0; i < positions.length/3; i++){
-		colorArray[i*4] = color[0];
-		colorArray[i*4+1] = color[1];
-		colorArray[i*4+2] = color[2];
-		colorArray[i*4+3] = color[3];
-	}
-	const colors = new Float32Array(colorArray);
-
-	const positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-	const colorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-
-	return {
-		position: positionBuffer,
-		color: colorBuffer,
-		vertexCount: positions.length/3
-	};
-}
-
 function drawFloorRectangle(renderInfo, modelMatrix, cameraPosition) {
 
 	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
@@ -1353,22 +1359,4 @@ function drawGrass(renderInfo, modelMatrix, cameraPosition) {
 		//modelMatrix.rotate(90,1,0,0)
 		drawFloorRectangle(renderInfo, modelMatrix, cameraPosition);
 	}
-}
-
-function drawLine(renderInfo, modelMatrix, cameraPosition) {
-
-	renderInfo.gl.useProgram(renderInfo.baseShaderInfo.program);
-
-	let cameraMatrixes = initCamera(renderInfo.gl, cameraPosition);
-	let modelviewMatrix = new Matrix4(cameraMatrixes.viewMatrix.multiply(modelMatrix));
-
-	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.modelViewMatrix, false, modelviewMatrix.elements);
-	renderInfo.gl.uniformMatrix4fv(renderInfo.baseShaderInfo.uniformLocations.projectionMatrix, false, cameraMatrixes.projectionMatrix.elements);
-
-	// Draw the grass/ground
-	connectPositionAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.coordsBuffers.position);
-	connectColorAttribute(renderInfo.gl, renderInfo.baseShaderInfo, renderInfo.coordsBuffers.color);
-
-	renderInfo.gl.drawArrays(renderInfo.gl.LINES, 0, renderInfo.coordsBuffers.vertexCount);
-
 }
